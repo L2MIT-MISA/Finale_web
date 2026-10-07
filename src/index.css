@@ -62,13 +62,12 @@
   box-sizing: border-box;
 }
 
-/* Pages plein écran comme l'accueil (Télécharger, À propos) : neutralise le
-   conteneur global #root centré, sinon la page reste en colonne réduite
-   avec le fond du body visible de chaque côté (noir en mode sombre). */
+/* Pages qui doivent utiliser toute la largeur */
 #root:has(.dl-root),
-#root:has(#page-about) {
+#root:has(.about-page) {
   width: 100%;
   max-width: none;
+  margin: 0;
   border: 0;
   display: block;
   text-align: initial;

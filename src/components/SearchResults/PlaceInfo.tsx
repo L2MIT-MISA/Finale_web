@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import type { Connectivite, Lieu, SourceIA } from "../../pages/Search/searchTypes";
 import { chargerConnectivite } from "../../services/connectivite";
+// ⚠️ Adapte ce chemin à l'endroit où se trouve SecuriteLieu.tsx dans ton projet.
+import SecuriteLieu from "../ConnecteoMap/SecuriteLieu";
 import CarteLieu, { type CarteId } from "./CarteLieu";
-import { DetailsConnectivite, DetailsInfos, DetailsSecurite, DetailsTransport } from "./DetailsLieu";
+import { DetailsConnectivite, DetailsInfos, DetailsTransport } from "./DetailsLieu";
 import GaleriePhotos from "./GaleriePhotos";
 import { fmt1, hueDe, typeDe } from "./placeFormat";
 
@@ -68,13 +70,30 @@ export default function PlaceInfo({ lieu, sources, onItineraire }: Props) {
           {...commun}
         />
 
+        {/*
+          Sécurité : « Voir plus » affiche les vraies données (police, hôpitaux, pharmacies…).
+          CarteLieu ne monte `details` que lorsque la carte est ouverte : SecuriteLieu ne charge
+          donc les données qu'au clic. `ouvert` fixé à true = pas de second bouton « Afficher plus ».
+        */}
         <CarteLieu
           id="securite"
           titre="Sécurité"
           badge={securite?.niveau ? { texte: securite.niveau, ton: securite.ton ?? "" } : null}
-          resume={securite ? <p className="sr-brief">{securite.resume ?? "Voir le détail."}</p> : INDISPONIBLE}
-          details={securite ? <DetailsSecurite securite={securite} /> : undefined}
-          voirPlusInactif
+          resume={
+            <p className="sr-brief">
+              {securite?.resume ?? "Police, hôpitaux et pharmacies à proximité."}
+            </p>
+          }
+          details={
+            <SecuriteLieu
+              ouvert
+              lieu={{
+                nom: lieu.nom,
+                sousTitre: lieu.sousTitre,
+                position: { lat, lng },
+              }}
+            />
+          }
           {...commun}
         />
 

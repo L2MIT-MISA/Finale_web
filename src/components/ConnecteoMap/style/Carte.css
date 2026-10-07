@@ -1,0 +1,64 @@
+/*
+   CONTENEUR PRINCIPAL
+ */
+.carte-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/*
+   RESPONSIVE
+ */
+@media (max-width: 600px) {
+    .legende {
+        padding: 12px 14px;
+        font-size: 13px;
+        min-width: 140px;
+        top: 80px;
+        right: 10px;
+    }
+
+    .legende h4 {
+        font-size: 12px;
+        margin-bottom: 10px;
+    }
+
+    .legende-item {
+        margin: 6px 0;
+        gap: 8px;
+    }
+
+    .legende-item img {
+        width: 20px;
+        height: 20px;
+    }
+
+    .recherche-bar {
+        width: 92vw;
+        padding: 4px 4px 4px 12px;
+    }
+
+    .recherche-bar input {
+        font-size: 13px;
+    }
+
+    .recherche-bar button {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    .itineraire-panel {
+        right: 16px;
+        bottom: 16px;
+    }
+
+    .itineraire-contenu {
+        width: 90vw;
+        max-width: 340px;
+    }
+}
+.sr-pin { width:36px; height:36px; box-sizing:border-box; display:grid; place-items:center; border:2px solid #2f5bff; border-radius:50%; background:#fff; color:#15171a; font:700 14px 'Instrument Sans','Inter',sans-serif; box-shadow:0 4px 10px rgba(21,23,26,.25); cursor:pointer; transition:.2s ease; }
+.sr-pin.dim { opacity:.7; }
+.sr-pin.approx { border-style:dashed; }
+.sr-pin.sel { width:48px; height:48px; font-size:17px; background:#2f5bff; color:#fff; border:3px solid #fff; box-shadow:0 0 0 3px #2f5bff, 0 8px 18px rgba(21,23,26,.35); }

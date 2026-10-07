@@ -1,0 +1,414 @@
+{
+  "zone": "antananarivo",
+  "categories": [
+    "accommodation.hotel"
+  ],
+  "nombre_lieux": 15,
+  "lieux": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Le Pavé",
+        "country": "Madagascar",
+        "region": "Analamanga",
+        "district": null,
+        "suburb": "Antaninarenina",
+        "street": "Rue Henri Razanatseheno",
+        "lon": 47.5260854,
+        "lat": -18.9095217,
+        "formatted": "Le Pavé, Rue Henri Razanatseheno, Ambatomena, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+        "categories": [
+          "accommodation.hotel"
+        ],
+        "phone": null,
+        "website": null,
+        "opening_hours": "24/7"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          47.5260854,
+          -18.9095217
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "La Ribaudière",
+        "country": "Madagascar",
+        "region": "Analamanga",
+        "district": null,
+        "suburb": "Antaninarenina",
+        "street": "Rue Henri Razanatseheno",
+        "lon": 47.5263518,
+        "lat": -18.9100166,
+        "formatted": "La Ribaudière, Rue Henri Razanatseheno, Ambatomena, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+        "categories": [
+          "accommodation.hotel"
+        ],
+        "phone": null,
+        "website": null,
+        "opening_hours": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          47.5263518,
+          -18.9100166
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hôtel du Louvre",
+        "country": "Madagascar",
+        "region": "Analamanga",
+        "district": null,
+        "suburb": "Antaninarenina",
+        "street": "Rue Général Rabehevitra",
+        "lon": 47.5248271,
+        "lat": -18.9103429,
+        "formatted": "Hôtel du Louvre, Rue Général Rabehevitra, Ambatonilita, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+        "categories": [
+          "accommodation.hotel"
+        ],
+        "phone": null,
+        "website": null,
+        "opening_hours": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          47.5248271,
+          -18.9103429
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Colbert",
+        "country": "Madagascar",
+        "region": "Analamanga",
+        "district": null,
+        "suburb": "Antaninarenina",
+        "street": "Rue Rabobalahy",
+        "lon": 47.5254926,
+        "lat": -18.9111387,
+        "formatted": "Colbert, Rue Rabobalahy, Ambohidahy, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+        "categories": [
+          "accommodation.hotel"
+        ],
+        "phone": null,
+        "website": null,
+        "opening_hours": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          47.5254926,
+          -18.9111387
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Aina",
+        "country": "Madagascar",
+        "region": "Analamanga",
+        "district": null,
+        "suburb": "Antaninarenina",
+        "street": "Rue Ratsimilaho",
+        "lon": 47.526258,
+        "lat": -18.9110142,
+        "formatted": "Aina, Rue Ratsimilaho, Ambatonakanga, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+        "categories": [
+          "accommodation.hotel"
+        ],
+        "phone": null,
+        "website": null,
+        "opening_hours": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          47.526258,
+          -18.9110142
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Tana Hôtel",
+        "country": "Madagascar",
+        "region": "Analamanga",
+        "district": null,
+        "suburb": "Antaninarenina",
+        "street": "Rue Général Rabehevitra",
+        "lon": 47.5240575,
+        "lat": -18.9104476,
+        "formatted": "Tana Hôtel, Rue Général Rabehevitra, Ambatonilita, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+        "categories": [
+          "accommodation.hotel"
+        ],
+        "phone": null,
+        "website": null,
+        "opening_hours": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          47.5240575,
+          -18.9104476
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Chalet des Roses",
+        "country": "Madagascar",
+        "region": "Analamanga",
+        "district": null,
+        "suburb": "Antaninarenina",
+        "street": "Rue Rainitovo",
+        "lon": 47.5239354,
+        "lat": -18.9092413,
+        "formatted": "Chalet des Roses, Rue Rainitovo, Ambatomena, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+        "categories": [
+          "accommodation.hotel"
+        ],
+        "phone": "+261 (20) 226 42 33 / +261 (20) 248 03 49",
+        "website": "https://www.chaletdesroses.com/",
+        "opening_hours": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          47.5239354,
+          -18.9092413
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Select Hotel",
+        "country": "Madagascar",
+        "region": "Analamanga",
+        "district": null,
+        "suburb": "Analakely",
+        "street": "Rue Refotaka",
+        "lon": 47.5253678,
+        "lat": -18.9081474,
+        "formatted": "Select Hotel, Rue Refotaka, Ambatomena, Analakely, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+        "categories": [
+          "accommodation.hotel"
+        ],
+        "phone": null,
+        "website": null,
+        "opening_hours": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          47.5253678,
+          -18.9081474
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "La Varangue",
+        "country": "Madagascar",
+        "region": "Analamanga",
+        "district": null,
+        "suburb": "Antaninarenina",
+        "street": "Rue Prince Ratsimamanga",
+        "lon": 47.5249725,
+        "lat": -18.9119145,
+        "formatted": "La Varangue, Rue Prince Ratsimamanga, Ambohidahy, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+        "categories": [
+          "accommodation.hotel"
+        ],
+        "phone": null,
+        "website": null,
+        "opening_hours": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          47.5249725,
+          -18.9119145
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hotel Le Pousse Pousse",
+        "country": "Madagascar",
+        "region": "Analamanga",
+        "district": null,
+        "suburb": "Antaninarenina",
+        "street": "Rue Général Rabehevitra",
+        "lon": 47.5235011,
+        "lat": -18.9104451,
+        "formatted": "Hotel Le Pousse Pousse, 9, Rue Général Rabehevitra, Ambatonilita, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+        "categories": [
+          "accommodation.hotel"
+        ],
+        "phone": "+261 32 42 052 62",
+        "website": "https://www.hotel-lepoussepousse.com",
+        "opening_hours": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          47.5235011,
+          -18.9104451
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Tripolitsa",
+        "country": "Madagascar",
+        "region": "Analamanga",
+        "district": null,
+        "suburb": "Analakely",
+        "street": "Avenue de l'Indépendance",
+        "lon": 47.5253557,
+        "lat": -18.9076141,
+        "formatted": "Tripolitsa, Avenue de l'Indépendance, Ambatomena, Analakely, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+        "categories": [
+          "accommodation.hotel"
+        ],
+        "phone": null,
+        "website": null,
+        "opening_hours": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          47.5253557,
+          -18.9076141
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Pietra Hotel",
+        "country": "Madagascar",
+        "region": "Analamanga",
+        "district": null,
+        "suburb": "Analakely",
+        "street": "Avenue de l'Indépendance",
+        "lon": 47.5252885,
+        "lat": -18.9075184,
+        "formatted": "Pietra Hotel, Avenue de l'Indépendance, Ambatomena, Analakely, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+        "categories": [
+          "accommodation.hotel"
+        ],
+        "phone": null,
+        "website": null,
+        "opening_hours": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          47.5252885,
+          -18.9075184
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Raphia",
+        "country": "Madagascar",
+        "region": "Analamanga",
+        "district": null,
+        "suburb": "Ambohijatovo",
+        "street": "Rue Ratsimilaho Ramaromanompo",
+        "lon": 47.5269086,
+        "lat": -18.9123706,
+        "formatted": "Raphia, Rue Ratsimilaho Ramaromanompo, Ambatonakanga, Ambohijatovo, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+        "categories": [
+          "accommodation.hotel"
+        ],
+        "phone": null,
+        "website": null,
+        "opening_hours": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          47.5269086,
+          -18.9123706
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Résidence Marévà",
+        "country": "Madagascar",
+        "region": "Analamanga",
+        "district": null,
+        "suburb": "Antaninarenina",
+        "street": "Rue Élysée Ravelontsalama",
+        "lon": 47.5231088,
+        "lat": -18.908639,
+        "formatted": "Résidence Marévà, Rue Élysée Ravelontsalama, Antsahavola, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+        "categories": [
+          "accommodation.hotel"
+        ],
+        "phone": null,
+        "website": null,
+        "opening_hours": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          47.5231088,
+          -18.908639
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Njato Hotel",
+        "country": "Madagascar",
+        "region": "Analamanga",
+        "district": null,
+        "suburb": "Antaninarenina",
+        "street": "Rue Élysée Ravelontsalama",
+        "lon": 47.5232491,
+        "lat": -18.908402,
+        "formatted": "Njato Hotel, Rue Élysée Ravelontsalama, Antsahavola, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+        "categories": [
+          "accommodation.hotel"
+        ],
+        "phone": null,
+        "website": null,
+        "opening_hours": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          47.5232491,
+          -18.908402
+        ]
+      }
+    }
+  ]
+}

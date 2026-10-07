@@ -1,0 +1,2181 @@
+{
+  "query": "données nettoyées",
+  "count": 15,
+  "results": [
+    {
+      "id": "geo_1",
+      "name": "Le Pavé",
+      "type": "accommodation.hotel",
+      "address": "Le Pavé, Rue Henri Razanatseheno, Ambatomena, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+      "location": {
+        "latitude": -18.9095217,
+        "longitude": 47.5260854
+      },
+      "phone": null,
+      "website": null,
+      "openingHours": "24/7",
+      "connectivity": "2G, 3G, 4G, 5G",
+      "connectivityDetails": {
+        "available": true,
+        "operators": {
+          "AIRTEL": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "Goldenrama",
+                "distance_meters": 217
+              },
+              "3G": {
+                "name": "Goldenrama",
+                "distance_meters": 217
+              },
+              "4G": {
+                "name": "Goldenrama",
+                "distance_meters": 217
+              },
+              "5G": null
+            }
+          },
+          "GULFSAT": {
+            "technologies": {
+              "2G": false,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": null,
+              "3G": {
+                "name": "Analakely (RM1)",
+                "distance_meters": 167
+              },
+              "4G": {
+                "name": "Analakely (RM1)",
+                "distance_meters": 167
+              },
+              "5G": null
+            }
+          },
+          "ORANGE": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "CentreVille",
+                "distance_meters": 141
+              },
+              "3G": {
+                "name": "CentreVille",
+                "distance_meters": 141
+              },
+              "4G": {
+                "name": "CentreVille",
+                "distance_meters": 141
+              },
+              "5G": null
+            }
+          },
+          "TELMA": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": true
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G",
+              "5G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 46
+              },
+              "3G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 46
+              },
+              "4G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 46
+              },
+              "5G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 46
+              }
+            }
+          }
+        },
+        "summary": {
+          "technologies_available": [
+            "2G",
+            "3G",
+            "4G",
+            "5G"
+          ],
+          "operators_available": [
+            "AIRTEL",
+            "GULFSAT",
+            "ORANGE",
+            "TELMA"
+          ]
+        }
+      }
+    },
+    {
+      "id": "geo_2",
+      "name": "La Ribaudière",
+      "type": "accommodation.hotel",
+      "address": "La Ribaudière, Rue Henri Razanatseheno, Ambatomena, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+      "location": {
+        "latitude": -18.9100166,
+        "longitude": 47.5263518
+      },
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "connectivity": "2G, 3G, 4G, 5G",
+      "connectivityDetails": {
+        "available": true,
+        "operators": {
+          "AIRTEL": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "Ambatonakanga",
+                "distance_meters": 275
+              },
+              "3G": {
+                "name": "Ambatonakanga",
+                "distance_meters": 275
+              },
+              "4G": {
+                "name": "Ambatonakanga",
+                "distance_meters": 275
+              },
+              "5G": null
+            }
+          },
+          "GULFSAT": {
+            "technologies": {
+              "2G": false,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": null,
+              "3G": {
+                "name": "Analakely (RM1)",
+                "distance_meters": 166
+              },
+              "4G": {
+                "name": "Analakely (RM1)",
+                "distance_meters": 166
+              },
+              "5G": null
+            }
+          },
+          "ORANGE": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "CentreVille",
+                "distance_meters": 83
+              },
+              "3G": {
+                "name": "CentreVille",
+                "distance_meters": 83
+              },
+              "4G": {
+                "name": "CentreVille",
+                "distance_meters": 83
+              },
+              "5G": null
+            }
+          },
+          "TELMA": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": true
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G",
+              "5G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "TAN_LESIX",
+                "distance_meters": 65
+              },
+              "3G": {
+                "name": "TAN_LESIX",
+                "distance_meters": 65
+              },
+              "4G": {
+                "name": "TAN_LESIX",
+                "distance_meters": 65
+              },
+              "5G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 108
+              }
+            }
+          }
+        },
+        "summary": {
+          "technologies_available": [
+            "2G",
+            "3G",
+            "4G",
+            "5G"
+          ],
+          "operators_available": [
+            "AIRTEL",
+            "GULFSAT",
+            "ORANGE",
+            "TELMA"
+          ]
+        }
+      }
+    },
+    {
+      "id": "geo_3",
+      "name": "Hôtel du Louvre",
+      "type": "accommodation.hotel",
+      "address": "Hôtel du Louvre, Rue Général Rabehevitra, Ambatonilita, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+      "location": {
+        "latitude": -18.9103429,
+        "longitude": 47.5248271
+      },
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "connectivity": "2G, 3G, 4G, 5G",
+      "connectivityDetails": {
+        "available": true,
+        "operators": {
+          "AIRTEL": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "Solima",
+                "distance_meters": 210
+              },
+              "3G": {
+                "name": "Solima",
+                "distance_meters": 210
+              },
+              "4G": {
+                "name": "Solima",
+                "distance_meters": 210
+              },
+              "5G": null
+            }
+          },
+          "GULFSAT": {
+            "technologies": {
+              "2G": false,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": null,
+              "3G": {
+                "name": "Antaninarenina (EDBM)",
+                "distance_meters": 195
+              },
+              "4G": {
+                "name": "Antaninarenina (EDBM)",
+                "distance_meters": 195
+              },
+              "5G": null
+            }
+          },
+          "ORANGE": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "CentreVille",
+                "distance_meters": 164
+              },
+              "3G": {
+                "name": "CentreVille",
+                "distance_meters": 164
+              },
+              "4G": {
+                "name": "CentreVille",
+                "distance_meters": 164
+              },
+              "5G": null
+            }
+          },
+          "TELMA": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": true
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G",
+              "5G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "TAN_LESIX",
+                "distance_meters": 137
+              },
+              "3G": {
+                "name": "TAN_LESIX",
+                "distance_meters": 137
+              },
+              "4G": {
+                "name": "TAN_LESIX",
+                "distance_meters": 137
+              },
+              "5G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 168
+              }
+            }
+          }
+        },
+        "summary": {
+          "technologies_available": [
+            "2G",
+            "3G",
+            "4G",
+            "5G"
+          ],
+          "operators_available": [
+            "AIRTEL",
+            "GULFSAT",
+            "ORANGE",
+            "TELMA"
+          ]
+        }
+      }
+    },
+    {
+      "id": "geo_4",
+      "name": "Colbert",
+      "type": "accommodation.hotel",
+      "address": "Colbert, Rue Rabobalahy, Ambohidahy, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+      "location": {
+        "latitude": -18.9111387,
+        "longitude": 47.5254926
+      },
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "connectivity": "2G, 3G, 4G, 5G",
+      "connectivityDetails": {
+        "available": true,
+        "operators": {
+          "AIRTEL": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "Ambatonakanga",
+                "distance_meters": 199
+              },
+              "3G": {
+                "name": "Ambatonakanga",
+                "distance_meters": 199
+              },
+              "4G": {
+                "name": "Ambatonakanga",
+                "distance_meters": 199
+              },
+              "5G": null
+            }
+          },
+          "GULFSAT": {
+            "technologies": {
+              "2G": false,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": null,
+              "3G": {
+                "name": "Antaninarenina (EDBM)",
+                "distance_meters": 272
+              },
+              "4G": {
+                "name": "Antaninarenina (EDBM)",
+                "distance_meters": 272
+              },
+              "5G": null
+            }
+          },
+          "ORANGE": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "CentreVille",
+                "distance_meters": 96
+              },
+              "3G": {
+                "name": "CentreVille",
+                "distance_meters": 96
+              },
+              "4G": {
+                "name": "CentreVille",
+                "distance_meters": 96
+              },
+              "5G": null
+            }
+          },
+          "TELMA": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": true
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G",
+              "5G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "TAN_LESIX",
+                "distance_meters": 92
+              },
+              "3G": {
+                "name": "TAN_LESIX",
+                "distance_meters": 92
+              },
+              "4G": {
+                "name": "TAN_LESIX",
+                "distance_meters": 92
+              },
+              "5G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 221
+              }
+            }
+          }
+        },
+        "summary": {
+          "technologies_available": [
+            "2G",
+            "3G",
+            "4G",
+            "5G"
+          ],
+          "operators_available": [
+            "AIRTEL",
+            "GULFSAT",
+            "ORANGE",
+            "TELMA"
+          ]
+        }
+      }
+    },
+    {
+      "id": "geo_5",
+      "name": "Aina",
+      "type": "accommodation.hotel",
+      "address": "Aina, Rue Ratsimilaho, Ambatonakanga, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+      "location": {
+        "latitude": -18.9110142,
+        "longitude": 47.526258
+      },
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "connectivity": "2G, 3G, 4G, 5G",
+      "connectivityDetails": {
+        "available": true,
+        "operators": {
+          "AIRTEL": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "Ambatonakanga",
+                "distance_meters": 169
+              },
+              "3G": {
+                "name": "Ambatonakanga",
+                "distance_meters": 169
+              },
+              "4G": {
+                "name": "Ambatonakanga",
+                "distance_meters": 169
+              },
+              "5G": null
+            }
+          },
+          "GULFSAT": {
+            "technologies": {
+              "2G": false,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": null,
+              "3G": {
+                "name": "Analakely (RM1)",
+                "distance_meters": 254
+              },
+              "4G": {
+                "name": "Analakely (RM1)",
+                "distance_meters": 254
+              },
+              "5G": null
+            }
+          },
+          "ORANGE": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "CentreVille",
+                "distance_meters": 28
+              },
+              "3G": {
+                "name": "CentreVille",
+                "distance_meters": 28
+              },
+              "4G": {
+                "name": "CentreVille",
+                "distance_meters": 28
+              },
+              "5G": null
+            }
+          },
+          "TELMA": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": true
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G",
+              "5G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "TAN_LESIX",
+                "distance_meters": 53
+              },
+              "3G": {
+                "name": "TAN_LESIX",
+                "distance_meters": 53
+              },
+              "4G": {
+                "name": "TAN_LESIX",
+                "distance_meters": 53
+              },
+              "5G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 209
+              }
+            }
+          }
+        },
+        "summary": {
+          "technologies_available": [
+            "2G",
+            "3G",
+            "4G",
+            "5G"
+          ],
+          "operators_available": [
+            "AIRTEL",
+            "GULFSAT",
+            "ORANGE",
+            "TELMA"
+          ]
+        }
+      }
+    },
+    {
+      "id": "geo_6",
+      "name": "Tana Hôtel",
+      "type": "accommodation.hotel",
+      "address": "Tana Hôtel, Rue Général Rabehevitra, Ambatonilita, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+      "location": {
+        "latitude": -18.9104476,
+        "longitude": 47.5240575
+      },
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "connectivity": "2G, 3G, 4G, 5G",
+      "connectivityDetails": {
+        "available": true,
+        "operators": {
+          "AIRTEL": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "Solima",
+                "distance_meters": 128
+              },
+              "3G": {
+                "name": "Solima",
+                "distance_meters": 128
+              },
+              "4G": {
+                "name": "Solima",
+                "distance_meters": 128
+              },
+              "5G": null
+            }
+          },
+          "GULFSAT": {
+            "technologies": {
+              "2G": false,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": null,
+              "3G": {
+                "name": "Antaninarenina (EDBM)",
+                "distance_meters": 113
+              },
+              "4G": {
+                "name": "Antaninarenina (EDBM)",
+                "distance_meters": 113
+              },
+              "5G": null
+            }
+          },
+          "ORANGE": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "CentreVille",
+                "distance_meters": 241
+              },
+              "3G": {
+                "name": "CentreVille",
+                "distance_meters": 241
+              },
+              "4G": {
+                "name": "CentreVille",
+                "distance_meters": 241
+              },
+              "5G": null
+            }
+          },
+          "TELMA": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": true
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G",
+              "5G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "TAN_LESIX",
+                "distance_meters": 217
+              },
+              "3G": {
+                "name": "TAN_LESIX",
+                "distance_meters": 217
+              },
+              "4G": {
+                "name": "TAN_LESIX",
+                "distance_meters": 217
+              },
+              "5G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 235
+              }
+            }
+          }
+        },
+        "summary": {
+          "technologies_available": [
+            "2G",
+            "3G",
+            "4G",
+            "5G"
+          ],
+          "operators_available": [
+            "AIRTEL",
+            "GULFSAT",
+            "ORANGE",
+            "TELMA"
+          ]
+        }
+      }
+    },
+    {
+      "id": "geo_7",
+      "name": "Chalet des Roses",
+      "type": "accommodation.hotel",
+      "address": "Chalet des Roses, Rue Rainitovo, Ambatomena, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+      "location": {
+        "latitude": -18.9092413,
+        "longitude": 47.5239354
+      },
+      "phone": "+261 (20) 226 42 33 / +261 (20) 248 03 49",
+      "website": "https://www.chaletdesroses.com/",
+      "openingHours": null,
+      "connectivity": "2G, 3G, 4G, 5G",
+      "connectivityDetails": {
+        "available": true,
+        "operators": {
+          "AIRTEL": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "Solima",
+                "distance_meters": 193
+              },
+              "3G": {
+                "name": "Solima",
+                "distance_meters": 193
+              },
+              "4G": {
+                "name": "Solima",
+                "distance_meters": 193
+              },
+              "5G": null
+            }
+          },
+          "GULFSAT": {
+            "technologies": {
+              "2G": false,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": null,
+              "3G": {
+                "name": "Antaninarenina (EDBM)",
+                "distance_meters": 177
+              },
+              "4G": {
+                "name": "Antaninarenina (EDBM)",
+                "distance_meters": 177
+              },
+              "5G": null
+            }
+          },
+          "ORANGE": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "Isoraka",
+                "distance_meters": 293
+              },
+              "3G": {
+                "name": "Isoraka",
+                "distance_meters": 293
+              },
+              "4G": {
+                "name": "Isoraka",
+                "distance_meters": 293
+              },
+              "5G": null
+            }
+          },
+          "TELMA": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": true
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G",
+              "5G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "TAN_AMBATOMENA",
+                "distance_meters": 161
+              },
+              "3G": {
+                "name": "TAN_AMBATOMENA",
+                "distance_meters": 161
+              },
+              "4G": {
+                "name": "TAN_AMBATOMENA",
+                "distance_meters": 161
+              },
+              "5G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 201
+              }
+            }
+          }
+        },
+        "summary": {
+          "technologies_available": [
+            "2G",
+            "3G",
+            "4G",
+            "5G"
+          ],
+          "operators_available": [
+            "AIRTEL",
+            "GULFSAT",
+            "ORANGE",
+            "TELMA"
+          ]
+        }
+      }
+    },
+    {
+      "id": "geo_8",
+      "name": "Select Hotel",
+      "type": "accommodation.hotel",
+      "address": "Select Hotel, Rue Refotaka, Ambatomena, Analakely, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+      "location": {
+        "latitude": -18.9081474,
+        "longitude": 47.5253678
+      },
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "connectivity": "2G, 3G, 4G, 5G",
+      "connectivityDetails": {
+        "available": true,
+        "operators": {
+          "AIRTEL": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "Goldenrama",
+                "distance_meters": 68
+              },
+              "3G": {
+                "name": "Goldenrama",
+                "distance_meters": 68
+              },
+              "4G": {
+                "name": "Goldenrama",
+                "distance_meters": 68
+              },
+              "5G": null
+            }
+          },
+          "GULFSAT": {
+            "technologies": {
+              "2G": false,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": null,
+              "3G": {
+                "name": "Analakely (RM1)",
+                "distance_meters": 260
+              },
+              "4G": {
+                "name": "Analakely (RM1)",
+                "distance_meters": 260
+              },
+              "5G": null
+            }
+          },
+          "ORANGE": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "TanaAnalakely",
+                "distance_meters": 196
+              },
+              "3G": {
+                "name": "TanaAnalakely",
+                "distance_meters": 196
+              },
+              "4G": {
+                "name": "TanaAnalakely",
+                "distance_meters": 196
+              },
+              "5G": null
+            }
+          },
+          "TELMA": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": true
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G",
+              "5G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 125
+              },
+              "3G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 125
+              },
+              "4G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 125
+              },
+              "5G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 125
+              }
+            }
+          }
+        },
+        "summary": {
+          "technologies_available": [
+            "2G",
+            "3G",
+            "4G",
+            "5G"
+          ],
+          "operators_available": [
+            "AIRTEL",
+            "GULFSAT",
+            "ORANGE",
+            "TELMA"
+          ]
+        }
+      }
+    },
+    {
+      "id": "geo_9",
+      "name": "La Varangue",
+      "type": "accommodation.hotel",
+      "address": "La Varangue, Rue Prince Ratsimamanga, Ambohidahy, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+      "location": {
+        "latitude": -18.9119145,
+        "longitude": 47.5249725
+      },
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "connectivity": "2G, 3G, 4G, 5G",
+      "connectivityDetails": {
+        "available": true,
+        "operators": {
+          "AIRTEL": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "Ambatonakanga",
+                "distance_meters": 198
+              },
+              "3G": {
+                "name": "Ambatonakanga",
+                "distance_meters": 198
+              },
+              "4G": {
+                "name": "Ambatonakanga",
+                "distance_meters": 198
+              },
+              "5G": null
+            }
+          },
+          "GULFSAT": {
+            "technologies": {
+              "2G": false,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": null,
+              "3G": {
+                "name": "Antaninarenina (EDBM)",
+                "distance_meters": 258
+              },
+              "4G": {
+                "name": "Antaninarenina (EDBM)",
+                "distance_meters": 258
+              },
+              "5G": null
+            }
+          },
+          "ORANGE": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "CentreVille",
+                "distance_meters": 191
+              },
+              "3G": {
+                "name": "CentreVille",
+                "distance_meters": 191
+              },
+              "4G": {
+                "name": "CentreVille",
+                "distance_meters": 191
+              },
+              "5G": null
+            }
+          },
+          "TELMA": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": true
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G",
+              "5G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "AMBATONAKANGA",
+                "distance_meters": 163
+              },
+              "3G": {
+                "name": "AMBATONAKANGA",
+                "distance_meters": 163
+              },
+              "4G": {
+                "name": "AMBATONAKANGA",
+                "distance_meters": 163
+              },
+              "5G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 318
+              }
+            }
+          }
+        },
+        "summary": {
+          "technologies_available": [
+            "2G",
+            "3G",
+            "4G",
+            "5G"
+          ],
+          "operators_available": [
+            "AIRTEL",
+            "GULFSAT",
+            "ORANGE",
+            "TELMA"
+          ]
+        }
+      }
+    },
+    {
+      "id": "geo_10",
+      "name": "Hotel Le Pousse Pousse",
+      "type": "accommodation.hotel",
+      "address": "Hotel Le Pousse Pousse, 9, Rue Général Rabehevitra, Ambatonilita, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+      "location": {
+        "latitude": -18.9104451,
+        "longitude": 47.5235011
+      },
+      "phone": "+261 32 42 052 62",
+      "website": "https://www.hotel-lepoussepousse.com",
+      "openingHours": null,
+      "connectivity": "2G, 3G, 4G, 5G",
+      "connectivityDetails": {
+        "available": true,
+        "operators": {
+          "AIRTEL": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "Solima",
+                "distance_meters": 71
+              },
+              "3G": {
+                "name": "Solima",
+                "distance_meters": 71
+              },
+              "4G": {
+                "name": "Solima",
+                "distance_meters": 71
+              },
+              "5G": null
+            }
+          },
+          "GULFSAT": {
+            "technologies": {
+              "2G": false,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": null,
+              "3G": {
+                "name": "Antaninarenina (EDBM)",
+                "distance_meters": 56
+              },
+              "4G": {
+                "name": "Antaninarenina (EDBM)",
+                "distance_meters": 56
+              },
+              "5G": null
+            }
+          },
+          "ORANGE": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "Isoraka",
+                "distance_meters": 204
+              },
+              "3G": {
+                "name": "Isoraka",
+                "distance_meters": 204
+              },
+              "4G": {
+                "name": "Isoraka",
+                "distance_meters": 204
+              },
+              "5G": null
+            }
+          },
+          "TELMA": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": true
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G",
+              "5G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "TAN_ISORAKA",
+                "distance_meters": 160
+              },
+              "3G": {
+                "name": "TAN_ISORAKA",
+                "distance_meters": 160
+              },
+              "4G": {
+                "name": "TAN_ISORAKA",
+                "distance_meters": 160
+              },
+              "5G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 284
+              }
+            }
+          }
+        },
+        "summary": {
+          "technologies_available": [
+            "2G",
+            "3G",
+            "4G",
+            "5G"
+          ],
+          "operators_available": [
+            "AIRTEL",
+            "GULFSAT",
+            "ORANGE",
+            "TELMA"
+          ]
+        }
+      }
+    },
+    {
+      "id": "geo_11",
+      "name": "Tripolitsa",
+      "type": "accommodation.hotel",
+      "address": "Tripolitsa, Avenue de l'Indépendance, Ambatomena, Analakely, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+      "location": {
+        "latitude": -18.9076141,
+        "longitude": 47.5253557
+      },
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "connectivity": "2G, 3G, 4G, 5G",
+      "connectivityDetails": {
+        "available": true,
+        "operators": {
+          "AIRTEL": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "Goldenrama",
+                "distance_meters": 34
+              },
+              "3G": {
+                "name": "Goldenrama",
+                "distance_meters": 34
+              },
+              "4G": {
+                "name": "Goldenrama",
+                "distance_meters": 34
+              },
+              "5G": null
+            }
+          },
+          "GULFSAT": {
+            "technologies": {
+              "2G": false,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": null,
+              "3G": {
+                "name": "Analakely (RM1)",
+                "distance_meters": 291
+              },
+              "4G": {
+                "name": "Analakely (RM1)",
+                "distance_meters": 291
+              },
+              "5G": null
+            }
+          },
+          "ORANGE": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "TanaAnalakely",
+                "distance_meters": 138
+              },
+              "3G": {
+                "name": "TanaAnalakely",
+                "distance_meters": 138
+              },
+              "4G": {
+                "name": "TanaAnalakely",
+                "distance_meters": 138
+              },
+              "5G": null
+            }
+          },
+          "TELMA": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": true
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G",
+              "5G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "TAN_AMBATOMENA",
+                "distance_meters": 140
+              },
+              "3G": {
+                "name": "TAN_AMBATOMENA",
+                "distance_meters": 140
+              },
+              "4G": {
+                "name": "TAN_AMBATOMENA",
+                "distance_meters": 140
+              },
+              "5G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 181
+              }
+            }
+          }
+        },
+        "summary": {
+          "technologies_available": [
+            "2G",
+            "3G",
+            "4G",
+            "5G"
+          ],
+          "operators_available": [
+            "AIRTEL",
+            "GULFSAT",
+            "ORANGE",
+            "TELMA"
+          ]
+        }
+      }
+    },
+    {
+      "id": "geo_12",
+      "name": "Pietra Hotel",
+      "type": "accommodation.hotel",
+      "address": "Pietra Hotel, Avenue de l'Indépendance, Ambatomena, Analakely, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+      "location": {
+        "latitude": -18.9075184,
+        "longitude": 47.5252885
+      },
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "connectivity": "2G, 3G, 4G, 5G",
+      "connectivityDetails": {
+        "available": true,
+        "operators": {
+          "AIRTEL": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "Goldenrama",
+                "distance_meters": 42
+              },
+              "3G": {
+                "name": "Goldenrama",
+                "distance_meters": 42
+              },
+              "4G": {
+                "name": "Goldenrama",
+                "distance_meters": 42
+              },
+              "5G": null
+            }
+          },
+          "GULFSAT": {
+            "technologies": {
+              "2G": false,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": null,
+              "3G": {
+                "name": "Analakely (RM1)",
+                "distance_meters": 303
+              },
+              "4G": {
+                "name": "Analakely (RM1)",
+                "distance_meters": 303
+              },
+              "5G": null
+            }
+          },
+          "ORANGE": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "TanaAnalakely",
+                "distance_meters": 129
+              },
+              "3G": {
+                "name": "TanaAnalakely",
+                "distance_meters": 129
+              },
+              "4G": {
+                "name": "TanaAnalakely",
+                "distance_meters": 129
+              },
+              "5G": null
+            }
+          },
+          "TELMA": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": true
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G",
+              "5G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "TAN_ANALAKELY2",
+                "distance_meters": 133
+              },
+              "3G": {
+                "name": "TAN_ANALAKELY2",
+                "distance_meters": 133
+              },
+              "4G": {
+                "name": "TAN_ANALAKELY2",
+                "distance_meters": 133
+              },
+              "5G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 194
+              }
+            }
+          }
+        },
+        "summary": {
+          "technologies_available": [
+            "2G",
+            "3G",
+            "4G",
+            "5G"
+          ],
+          "operators_available": [
+            "AIRTEL",
+            "GULFSAT",
+            "ORANGE",
+            "TELMA"
+          ]
+        }
+      }
+    },
+    {
+      "id": "geo_13",
+      "name": "Raphia",
+      "type": "accommodation.hotel",
+      "address": "Raphia, Rue Ratsimilaho Ramaromanompo, Ambatonakanga, Ambohijatovo, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+      "location": {
+        "latitude": -18.9123706,
+        "longitude": 47.5269086
+      },
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "connectivity": "2G, 3G, 4G, 5G",
+      "connectivityDetails": {
+        "available": true,
+        "operators": {
+          "AIRTEL": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "Ambatonakanga",
+                "distance_meters": 19
+              },
+              "3G": {
+                "name": "Ambatonakanga",
+                "distance_meters": 19
+              },
+              "4G": {
+                "name": "Ambatonakanga",
+                "distance_meters": 19
+              },
+              "5G": null
+            }
+          },
+          "GULFSAT": {
+            "technologies": {
+              "2G": false,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": null,
+              "3G": {
+                "name": "Amparibe",
+                "distance_meters": 309
+              },
+              "4G": {
+                "name": "Analakely (RM1)",
+                "distance_meters": 369
+              },
+              "5G": null
+            }
+          },
+          "ORANGE": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "CentreVille",
+                "distance_meters": 189
+              },
+              "3G": {
+                "name": "CentreVille",
+                "distance_meters": 189
+              },
+              "4G": {
+                "name": "CentreVille",
+                "distance_meters": 189
+              },
+              "5G": null
+            }
+          },
+          "TELMA": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": true
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G",
+              "5G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "AMBATONAKANGA",
+                "distance_meters": 47
+              },
+              "3G": {
+                "name": "AMBATONAKANGA",
+                "distance_meters": 47
+              },
+              "4G": {
+                "name": "AMBATONAKANGA",
+                "distance_meters": 47
+              },
+              "5G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 373
+              }
+            }
+          }
+        },
+        "summary": {
+          "technologies_available": [
+            "2G",
+            "3G",
+            "4G",
+            "5G"
+          ],
+          "operators_available": [
+            "AIRTEL",
+            "GULFSAT",
+            "ORANGE",
+            "TELMA"
+          ]
+        }
+      }
+    },
+    {
+      "id": "geo_14",
+      "name": "Résidence Marévà",
+      "type": "accommodation.hotel",
+      "address": "Résidence Marévà, Rue Élysée Ravelontsalama, Antsahavola, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+      "location": {
+        "latitude": -18.908639,
+        "longitude": 47.5231088
+      },
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "connectivity": "2G, 3G, 4G, 5G",
+      "connectivityDetails": {
+        "available": true,
+        "operators": {
+          "AIRTEL": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "Solima",
+                "distance_meters": 224
+              },
+              "3G": {
+                "name": "Solima",
+                "distance_meters": 224
+              },
+              "4G": {
+                "name": "Solima",
+                "distance_meters": 224
+              },
+              "5G": null
+            }
+          },
+          "GULFSAT": {
+            "technologies": {
+              "2G": false,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": null,
+              "3G": {
+                "name": "Antaninarenina (EDBM)",
+                "distance_meters": 214
+              },
+              "4G": {
+                "name": "Antaninarenina (EDBM)",
+                "distance_meters": 214
+              },
+              "5G": null
+            }
+          },
+          "ORANGE": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "AnalakelyBull",
+                "distance_meters": 217
+              },
+              "3G": {
+                "name": "AnalakelyBull",
+                "distance_meters": 217
+              },
+              "4G": {
+                "name": "AnalakelyBull",
+                "distance_meters": 217
+              },
+              "5G": null
+            }
+          },
+          "TELMA": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": true
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G",
+              "5G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "TAN_AMBATOMENA",
+                "distance_meters": 136
+              },
+              "3G": {
+                "name": "TAN_AMBATOMENA",
+                "distance_meters": 136
+              },
+              "4G": {
+                "name": "TAN_AMBATOMENA",
+                "distance_meters": 136
+              },
+              "5G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 294
+              }
+            }
+          }
+        },
+        "summary": {
+          "technologies_available": [
+            "2G",
+            "3G",
+            "4G",
+            "5G"
+          ],
+          "operators_available": [
+            "AIRTEL",
+            "GULFSAT",
+            "ORANGE",
+            "TELMA"
+          ]
+        }
+      }
+    },
+    {
+      "id": "geo_15",
+      "name": "Njato Hotel",
+      "type": "accommodation.hotel",
+      "address": "Njato Hotel, Rue Élysée Ravelontsalama, Antsahavola, Antaninarenina, Antananarivo, Analamanga, Province d’Antananarivo, 101, Madagascar",
+      "location": {
+        "latitude": -18.908402,
+        "longitude": 47.5232491
+      },
+      "phone": null,
+      "website": null,
+      "openingHours": null,
+      "connectivity": "2G, 3G, 4G, 5G",
+      "connectivityDetails": {
+        "available": true,
+        "operators": {
+          "AIRTEL": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "Solima",
+                "distance_meters": 252
+              },
+              "3G": {
+                "name": "Solima",
+                "distance_meters": 252
+              },
+              "4G": {
+                "name": "Solima",
+                "distance_meters": 252
+              },
+              "5G": null
+            }
+          },
+          "GULFSAT": {
+            "technologies": {
+              "2G": false,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": null,
+              "3G": {
+                "name": "Antaninarenina (EDBM)",
+                "distance_meters": 241
+              },
+              "4G": {
+                "name": "Antaninarenina (EDBM)",
+                "distance_meters": 241
+              },
+              "5G": null
+            }
+          },
+          "ORANGE": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": false
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "AnalakelyBull",
+                "distance_meters": 198
+              },
+              "3G": {
+                "name": "AnalakelyBull",
+                "distance_meters": 198
+              },
+              "4G": {
+                "name": "AnalakelyBull",
+                "distance_meters": 198
+              },
+              "5G": null
+            }
+          },
+          "TELMA": {
+            "technologies": {
+              "2G": true,
+              "3G": true,
+              "4G": true,
+              "5G": true
+            },
+            "technologies_actives": [
+              "2G",
+              "3G",
+              "4G",
+              "5G"
+            ],
+            "nearest_towers_by_technology": {
+              "2G": {
+                "name": "TAN_AMBATOMENA",
+                "distance_meters": 108
+              },
+              "3G": {
+                "name": "TAN_AMBATOMENA",
+                "distance_meters": 108
+              },
+              "4G": {
+                "name": "TAN_AMBATOMENA",
+                "distance_meters": 108
+              },
+              "5G": {
+                "name": "TAN_ANALAKELY",
+                "distance_meters": 286
+              }
+            }
+          }
+        },
+        "summary": {
+          "technologies_available": [
+            "2G",
+            "3G",
+            "4G",
+            "5G"
+          ],
+          "operators_available": [
+            "AIRTEL",
+            "GULFSAT",
+            "ORANGE",
+            "TELMA"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+.search-map-page,
+.search-page-state {
+  --sr-ink: #16161a;
+  --sr-soft: #f2f2ee;
+  --sr-muted: #8e8e96;
+  --sr-accent: #2f5fff;
+  --sr-accent-soft: #eef2ff;
+  --sr-accent-ink: #1e3fbf;
+  --sr-line: #e8e8ec;
+  --sr-line-strong: #d6d6dc;
+  --sr-danger: #e5484d;
+  --sr-green: #15803d;
+  --sr-amber: #b45309;
+  background: #ffffff;
+}
+
+.search-map-page {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  padding-top: 64px;
+}
+
+.search-map-side {
+  min-height: 0;
+  border-right: 1px solid var(--sr-line);
+  background: #ffffff;
+}
+
+.search-map-column {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #f6f7f4;
+}
+
+.sr-map-wrap {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 260px;
+  overflow: hidden;
+  background: #e4ece6;
+}
+
+.search-page-state {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 90px 24px 30px;
+  color: var(--sr-ink);
+  text-align: center;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+.search-page-state h1 {
+  margin: 0;
+  color: var(--sr-ink);
+  font-family: inherit;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.search-page-state p {
+  max-width: 520px;
+  color: #56565e;
+  font-size: 15px;
+}
+
+.search-page-state a {
+  margin-top: 8px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: var(--sr-accent);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 6px 20px rgba(47, 95, 255, 0.25);
+}
+
+.search-page-state a:hover {
+  background: var(--sr-accent-ink);
+}
+
+.search-loader {
+  width: 38px;
+  height: 38px;
+  border: 3px solid var(--sr-accent-soft);
+  border-top-color: var(--sr-accent);
+  border-radius: 50%;
+  animation: searchSpin 0.8s linear infinite;
+}
+
+@keyframes searchSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 760px) {
+  .search-map-page {
+    display: block;
+    overflow-y: auto;
+  }
+
+  .search-map-column {
+    height: auto;
+  }
+
+  .sr-map-wrap {
+    flex: none;
+    height: 56vh;
+  }
+
+  .sr-info {
+    flex: none;
+  }
+
+  .search-map-side {
+    height: 72vh;
+    border-right: 0;
+    border-top: 1px solid var(--sr-line);
+  }
+}

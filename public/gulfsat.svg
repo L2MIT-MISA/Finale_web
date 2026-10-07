@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 570" width="100%" height="100%">
+  <defs>
+    <clipPath id="pin-clip">
+      <path d="M 250,540 C 130,370 80,280 80,200 C 80,106.01 156.01,30 250,30 C 343.99,30 420,106.01 420,200 C 420,280 370,370 250,540 Z"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#pin-clip)">
+    <rect x="0" y="0" width="250" height="600" fill="#1D5290"/>
+    <rect x="250" y="0" width="250" height="600" fill="#123B6B"/>
+  </g>
+  <circle cx="250" cy="200" r="145" fill="#C2C7CC"/>
+  <g stroke="#1D5290" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="250" cy="115" r="7" fill="#1D5290"/>
+    <line x1="250" y1="122" x2="205" y2="225" stroke-width="9"/>
+    <line x1="250" y1="122" x2="295" y2="225" stroke-width="9"/>
+    <line x1="205" y1="225" x2="201" y2="235" stroke-width="9"/>
+    <line x1="295" y1="225" x2="299" y2="235" stroke-width="9"/>
+    <line x1="237" y1="152" x2="263" y2="152" stroke-width="7"/>
+    <line x1="224" y1="180" x2="276" y2="180" stroke-width="7"/>
+    <line x1="211" y1="210" x2="289" y2="210" stroke-width="8"/>
+    <line x1="237" y1="152" x2="276" y2="180" stroke-width="5"/>
+    <line x1="263" y1="152" x2="224" y2="180" stroke-width="5"/>
+    <line x1="224" y1="180" x2="289" y2="210" stroke-width="5"/>
+    <line x1="276" y1="180" x2="211" y2="210" stroke-width="5"/>
+    <path d="M 188,132 A 85,85 0 0,0 188,208" stroke-width="12"/>
+    <path d="M 168,112 A 115,115 0 0,0 168,228" stroke-width="12"/>
+    <path d="M 312,132 A 85,85 0 0,1 312,208" stroke-width="12"/>
+    <path d="M 332,112 A 115,115 0 0,1 332,228" stroke-width="12"/>
+  </g>
+</svg>

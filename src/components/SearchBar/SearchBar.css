@@ -1,0 +1,94 @@
+.home-search {
+  width: min(680px, 100%);
+  margin: 0 auto;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 22px;
+  background: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  border-radius: 28px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  transition: border-color 0.2s ease, box-shadow 0.25s ease;
+}
+
+.home-search:hover {
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+.home-search:focus-within {
+  border-color: #2f5fff;
+  box-shadow: 0 0 0 4px rgba(47, 95, 255, 0.25), 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.home-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 13px 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #16161a;
+  font: 400 16px "Inter", system-ui, sans-serif;
+}
+
+.home-search input::placeholder {
+  color: #8e8e96;
+}
+
+.home-search-send {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #16161a;
+  color: #ffffff;
+  opacity: 0.35;
+  cursor: default;
+  transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+
+.home-search-send.enabled {
+  background: #2f5fff;
+  opacity: 1;
+  cursor: pointer;
+}
+
+.home-search-send.enabled:hover {
+  background: #1e3fbf;
+  transform: scale(1.06);
+}
+
+.home-search-send svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (max-width: 800px) {
+  .home-search {
+    padding: 5px 5px 5px 18px;
+    border-radius: 24px;
+  }
+
+  .home-search input {
+    padding: 11px 0;
+    font-size: 14.4px;
+  }
+
+  .home-search-send {
+    width: 36px;
+    height: 36px;
+  }
+}

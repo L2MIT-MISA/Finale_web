@@ -1,0 +1,116 @@
+/* Header unifié — même design que l'accueil, autonome sur toutes les pages.
+   Base = style accueil (transparent, texte blanc).
+   Modificateur --page = barre claire fixe (Télécharger, À propos, Recherche, Connexion). */
+
+.site-header {
+  --sh-ink: #fff;
+  --sh-muted: rgba(235, 238, 255, .78);
+  --sh-line: rgba(255, 255, 255, .55);
+  --sh-accent: #38bdf8;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 22px clamp(20px, 5vw, 64px);
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.site-header--page {
+  --sh-ink: #0b1048;
+  --sh-muted: rgba(11, 16, 72, .62);
+  --sh-line: rgba(56, 189, 248, .6);
+  position: sticky;
+  top: 12px;
+  z-index: 900;
+  max-width: 1160px;
+  margin: 12px auto 0;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  background: rgba(255, 255, 255, .88);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(11, 16, 72, .08);
+  border-radius: 22px;
+  box-shadow: 0 4px 12px rgba(11, 16, 72, .1), 0 18px 50px rgba(11, 16, 72, .14), inset 0 1px 0 rgba(255, 255, 255, .9);
+}
+/* Header clair (ex. Télécharger) : lettres en noir pur pour un contraste maximal */
+.site-header--page .site-header__brand,
+.site-header--page .site-header__link,
+.site-header--page .site-header__langbtn,
+.site-header--page .site-header__btn,
+.site-header--page .site-header__avatar,
+.site-header--page .site-header__burger { color: #000; }
+/* Accueil : prioritaire sur les héritages #page-accueil a/button (qui imposent le blanc du hero) */
+#page-accueil .site-header--page .site-header__brand,
+#page-accueil .site-header--page .site-header__link,
+#page-accueil .site-header--page .site-header__langbtn,
+#page-accueil .site-header--page .site-header__btn,
+#page-accueil .site-header--page .site-header__avatar,
+#page-accueil .site-header--page .site-header__burger { color: #000; }
+.site-header a { color: inherit; text-decoration: none; }
+.site-header button { font: inherit; color: inherit; cursor: pointer; }
+.site-header :focus-visible { outline: 2px solid var(--sh-accent); outline-offset: 3px; }
+.site-header svg { flex: none; }
+
+.site-header__brand { display: inline-flex; align-items: center; gap: 9px; font-weight: 700; font-size: 1.05rem; color: var(--sh-ink); }
+.site-header__brand svg { color: var(--sh-accent); }
+
+.site-header__nav { display: flex; align-items: center; gap: 28px; }
+.site-header__link { position: relative; font-size: .82rem; font-weight: 500; color: var(--sh-muted); padding: 7px 16px; background: transparent; border: 0; border-radius: 999px; transition: background .2s, color .2s; }
+.site-header__link:hover { color: var(--sh-ink); background: rgba(56, 189, 248, .1); }
+.site-header__link--active { color: var(--sh-ink); font-weight: 600; background: rgba(56, 189, 248, .18); }
+
+/* Sélecteur de langue minimaliste */
+.site-header__lang { position: relative; display: inline-flex; }
+.site-header__langbtn { display: inline-flex; align-items: center; gap: 5px; background: none; border: 0; font-size: .78rem; font-weight: 600; letter-spacing: .06em; color: var(--sh-muted); padding: 4px 2px; }
+.site-header__langbtn:hover { color: var(--sh-ink); }
+.site-header__chevron { transition: transform .2s; }
+.site-header__chevron.open { transform: rotate(180deg); }
+
+/* Menus déroulants : carte blanche lisible sur fond sombre comme sur fond clair */
+.site-header__menu { position: absolute; top: calc(100% + 10px); right: 0; z-index: 60; min-width: 148px; padding: 6px; border-radius: 14px; background: #fff; border: 1px solid rgba(11, 16, 72, .1); box-shadow: 0 16px 40px rgba(5, 8, 40, .25); }
+.site-header__menu button { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; box-sizing: border-box; background: transparent; border: 0; padding: 9px 12px; border-radius: 9px; color: #14142b; font-size: .8rem; font-weight: 500; text-align: left; }
+.site-header__menu button:hover:not(:disabled) { background: rgba(56, 189, 248, .14); }
+.site-header__menu button.active { font-weight: 700; }
+.site-header__menu button svg { color: var(--sh-accent); }
+/* Texte noir pur : prioritaire sur les héritages globaux (ex. #page-accueil button) */
+.site-header__menu button,
+#page-accueil .site-header__menu button { color: #000; }
+.site-header__menu button.active,
+#page-accueil .site-header__menu button.active { color: #000; }
+.site-header__menu button:disabled { opacity: .6; cursor: wait; }
+
+/* Bouton connexion + compte */
+.site-header__btn { display: inline-flex; align-items: center; justify-content: center; padding: 8px 18px; border-radius: 999px; border: 1px solid var(--sh-line); background: rgba(255, 255, 255, .08); font-size: .78rem; font-weight: 600; color: var(--sh-ink); transition: background .2s, border-color .2s; }
+.site-header__btn:hover { background: rgba(56, 189, 248, .22); border-color: var(--sh-accent); }
+.site-header__account { position: relative; display: inline-flex; }
+.site-header__avatar { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 1px solid var(--sh-line); background: rgba(255, 255, 255, .14); color: var(--sh-ink); transition: background .2s, transform .2s; }
+.site-header__avatar:hover { background: rgba(56, 189, 248, .25); transform: translateY(-1px); }
+
+/* Burger + panneau mobile */
+.site-header__burger { display: none; place-items: center; width: 40px; height: 40px; padding: 0; border-radius: 12px; border: 1px solid var(--sh-line); background: rgba(255, 255, 255, .1); color: var(--sh-ink); }
+.site-header__panel { display: none; }
+
+@media (max-width: 640px) {
+  .site-header__nav { display: none; }
+  .site-header__burger { display: grid; }
+  .site-header__panel { position: fixed; top: 0; right: 0; z-index: 950; display: flex; flex-direction: column; gap: 6px; width: min(300px, 84vw); height: 100dvh; box-sizing: border-box; padding: 84px 24px 24px; background: rgba(10, 15, 50, .97); border-left: 1px solid rgba(255, 255, 255, .14); box-shadow: -20px 0 60px rgba(5, 8, 40, .45); }
+  .site-header__panel--page { background: rgba(255, 255, 255, .97); border-left: 1px solid rgba(11, 16, 72, .1); box-shadow: -20px 0 60px rgba(11, 16, 72, .15); }
+  .site-header__panel button { display: block; width: 100%; box-sizing: border-box; background: transparent; border: 0; padding: 13px 14px; border-radius: 12px; color: #fff; font-size: .95rem; font-weight: 500; text-align: left; }
+  .site-header__panel--page button { color: #0b1048; }
+  .site-header__panel button:hover:not(:disabled) { background: rgba(255, 255, 255, .12); }
+  .site-header__panel--page button:hover:not(:disabled) { background: rgba(56, 189, 248, .14); }
+  .site-header__panel button.active { font-weight: 700; color: #7dd3fc; }
+  .site-header__panel--page button.active { color: #0284c7; }
+  .site-header__panel button:disabled { opacity: .6; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header * { transition: none !important; }
+}
+
+/* Les ancres ne passent pas sous la barre flottante (hauteur + décalage) */
+[id="accueil"], [id="galerie"], [id="telecharger"] { scroll-margin-top: 100px; }

@@ -70,6 +70,7 @@ export interface CarteIA {
 
 export interface ReponseIA {
   id_resultat: string;
+  session_id?: string;
   statut: string;
   date_creation?: string;
   date_fin?: string;
@@ -79,6 +80,10 @@ export interface ReponseIA {
     source_principale?: string | null;
     recherche_google?: string | null;
   } | null;
+  message?: string | null;
+  suggestions?: string[];
+  garder_resultats?: boolean;
+  ouvrir_carte?: boolean;
   lieux?: LieuIA[];
   lieux_approximative?: LieuIA[];
   carte?: CarteIA | null;

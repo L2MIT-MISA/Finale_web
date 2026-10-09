@@ -6,6 +6,7 @@ export interface Message {
   id: number;
   from: "user" | "ai";
   text: string;
+  suggestions?: string[];
 }
 
 interface Props {
@@ -47,7 +48,16 @@ export default function ChatPanel({ messages, busy, total, triees, onSend, onSho
 
       <div className="sr-chat-body" ref={corps} aria-live="polite">
         {messages.map((m) => (
-          <div key={m.id} className={`sr-bubble ${m.from}`}>{m.text}</div>
+          <div key={m.id} className={`sr-message ${m.from}`}>
+            <div className={`sr-bubble ${m.from}`}>{m.text}</div>
+            {m.from === "ai" && m.suggestions && m.suggestions.length > 0 && (
+              <div className="sr-suggestions">
+                {m.suggestions.map((suggestion) => (
+                  <button key={suggestion} type="button" onClick={() => onSend(suggestion)}>{suggestion}</button>
+                ))}
+              </div>
+            )}
+          </div>
         ))}
 
         {busy && (

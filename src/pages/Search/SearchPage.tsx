@@ -36,8 +36,8 @@ export default function SearchPage() {
   const idRef = useRef(1);
   const ctrlRef = useRef<AbortController | null>(null);
 
-  const ajouter = useCallback((from: Message["from"], text: string) => {
-    setMessages((m) => [...m, { id: idRef.current++, from, text }]);
+  const ajouter = useCallback((from: Message["from"], text: string, suggestions?: string[]) => {
+    setMessages((m) => [...m, { id: idRef.current++, from, text, suggestions }]);
   }, []);
 
   const lancer = useCallback(
@@ -52,15 +52,16 @@ export default function SearchPage() {
         if (rep.avertissements?.length) console.warn("[IA]", rep.avertissements);
 
         const nouveaux = lieuxDe(rep);
-        // une clarification ne remplace pas les résultats déjà affichés
-        if (nouveaux.length > 0 || !rep.clarification) {
+        // Le backend indique explicitement quand une réponse conversationnelle doit garder la carte actuelle.
+        if (!rep.garder_resultats) {
           setLieux(nouveaux);
           setSources(rep.sources ?? []);
           setCarte(rep.carte ?? null);
           setSelectedId(null);
         }
-        setVue("chat");
-        messagesDe(rep).forEach((t) => ajouter("ai", t));
+        setVue(rep.ouvrir_carte && nouveaux.length > 0 ? "liste" : "chat");
+        const textes = messagesDe(rep);
+        textes.forEach((t, index) => ajouter("ai", t, index === textes.length - 1 ? rep.suggestions : undefined));
       } catch {
         if (ctrl.signal.aborted) return;
         ajouter("ai", "L'assistant est indisponible. Réessayez dans un instant.");
@@ -118,7 +119,7 @@ export default function SearchPage() {
             carte={carte}
             selected={selected}
             demandeItineraire={demandeItineraire}
-            onSelect={(l: Lieu | null) => setSelectedId(l?.id ?? null)}
+            onSelect={(l) => setSelectedId(String(l.id))}
           />
         </div>
         {selected && (

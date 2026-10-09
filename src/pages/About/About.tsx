@@ -3,11 +3,6 @@ import "./About.css";
 import heroImage from "../assets/hero.jpg";
 import missionImage from "../assets/mission.jpg";
 
-interface NavigationLink {
-  label: string;
-  isActive: boolean;
-}
-
 interface ValueCard {
   icon: string;
   title: string;
@@ -18,12 +13,6 @@ interface FooterColumn {
   title: string;
   links: string[];
 }
-
-const navigationLinks: NavigationLink[] = [
-  { label: "Accueil", isActive: false },
-  { label: "Télécharger", isActive: false },
-  { label: "À propos", isActive: true },
-];
 
 const valueCards: ValueCard[] = [
   {

@@ -1,392 +1,820 @@
-/* =========================================
-   PAGE AUTHENTIFICATION
-   ========================================= */
+/* =====================================================
+   PAGE PRINCIPALE
+===================================================== */
 
-.auth-page {
-  min-height: 100vh;
+.pages
+{
+    min-height: 100vh;
 
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    display: flex;
+    flex-direction: column;
+}
 
-  background: #020202;
+.auth-page
+{
+    flex: 1;
 
-  padding: 30px 20px;
+    width: 100%;
 
-  box-sizing: border-box;
+    display: flex;
+
+    background-color: #f7f8fc;
 }
 
 
-/* =========================================
-   CARTE
-   ========================================= */
+/* =====================================================
+   PARTIE GAUCHE
+===================================================== */
 
-.auth-card {
-  width: 100%;
-  max-width: 420px;
+.auth-left
+{
+    width: 45%;
 
-  padding: 34px 40px 38px;
+    position: relative;
 
-  background: #070d0a;
-
-  border: 1px solid #303833;
-
-  border-radius: 22px;
-
-  box-shadow:
-    0 25px 60px rgba(0, 0, 0, 0.55);
-
-  box-sizing: border-box;
+    overflow: hidden;
 }
 
 
-/* =========================================
+/* =====================================================
+   CONTENEUR DE L'IMAGE
+===================================================== */
+
+.auth-image-container
+{
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+}
+
+
+/* =====================================================
+   IMAGE
+===================================================== */
+
+.auth-background
+{
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    /*
+       L'image remplit toute la partie gauche.
+    */
+    object-fit: cover;
+
+    /*
+       Centre l'image.
+    */
+    object-position: center center;
+
+    /*
+       Animation douce.
+    */
+    animation: imageFade 1.5s ease-in-out;
+}
+
+
+/* =====================================================
+   VOILE BLEU SUR L'IMAGE
+===================================================== */
+
+.auth-overlay
+{
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    background: rgba(10, 35, 70, 0.40);
+
+    z-index: 1;
+}
+
+
+/* =====================================================
+   CONTENU DE GAUCHE
+===================================================== */
+
+.auth-left-content
+{
+    position: absolute;
+
+    top: 75px;
+
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    width: 80%;
+
+    color: white;
+
+    text-align: center;
+
+    z-index: 2;
+
+    animation: fadeIn 1s ease-out 0.3s both;
+}
+
+
+/* =====================================================
    LOGO
-   ========================================= */
+===================================================== */
 
-.auth-logo {
-  display: flex;
+.auth-logo
+{
+    width: 38px;
+    height: 38px;
 
-  flex-direction: column;
+    margin: 0 auto 20px auto;
 
-  align-items: center;
+    display: flex;
 
-  margin-bottom: 38px;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background-color: #4825f5;
+
+    color: white;
+
+    font-size: 18px;
+
+    font-weight: 700;
 }
 
 
-.auth-logo h1 {
-  margin: 18px 0 0;
+/* =====================================================
+   GRAND TEXTE À GAUCHE
+===================================================== */
 
-  color: #f5f5f5;
+.auth-left-content h1
+{
+    margin: 0 auto;
 
-  font-size: 25px;
+    max-width: 450px;
 
-  font-weight: 600;
+    font-size: clamp(25px, 2.5vw, 35px);
 
-  letter-spacing: -0.5px;
+    line-height: 1.3;
+
+    font-weight: 700;
+
+    text-align: left;
 }
 
 
-/* Cercle principal */
+/* =====================================================
+   TEXTE "L'ÉQUIPE CONNECTÉO"
+===================================================== */
 
-.logo-circle {
-  width: 64px;
-  height: 64px;
+.auth-footer-text
+{
+    margin-top: clamp(80px, 25vh, 260px);
 
-  border: 1.5px solid #cfc7a9;
+    width: 100%;
 
-  border-radius: 50%;
-
-  display: flex;
-
-  justify-content: center;
-
-  align-items: center;
-
-  box-sizing: border-box;
+    text-align: center;
 }
 
 
-/* Cercle intermédiaire */
+.auth-footer-text p
+{
+    margin: 0;
 
-.logo-circle-middle {
-  width: 39px;
-  height: 39px;
+    font-size: 14px;
 
-  border: 1.5px solid #cfc7a9;
+    line-height: 1.4;
 
-  border-radius: 50%;
-
-  display: flex;
-
-  justify-content: center;
-
-  align-items: center;
-
-  box-sizing: border-box;
+    color: rgba(255, 255, 255, 0.95);
 }
 
 
-/* Cercle intérieur */
+/* =====================================================
+   PARTIE DROITE
+===================================================== */
 
-.logo-circle-inner {
-  width: 17px;
-  height: 17px;
+.auth-right
+{
+    width: 55%;
 
-  border: 1.5px solid #cfc7a9;
+    display: flex;
 
-  border-radius: 50%;
+    align-items: center;
 
-  box-sizing: border-box;
+    justify-content: center;
+
+    padding: 40px;
+
+    box-sizing: border-box;
 }
 
 
-/* =========================================
+/* =====================================================
+   CARTE DE CONNEXION
+===================================================== */
+
+.auth-card
+{
+    width: 100%;
+
+    max-width: 460px;
+
+    background-color: white;
+
+    border-radius: 19px;
+
+    padding: 35px;
+
+    box-sizing: border-box;
+
+    box-shadow:
+        0 8px 25px rgba(30, 30, 50, 0.08);
+
+    animation: cardIn 0.8s ease-out 0.3s both;
+}
+
+
+/* =====================================================
    TITRE
-   ========================================= */
+===================================================== */
 
-.auth-header {
-  text-align: center;
+.auth-title
+{
+    text-align: left;
 
-  margin-bottom: 32px;
+    margin-bottom: 28px;
 }
 
 
-.auth-header h2 {
-  margin: 0 0 10px;
+.auth-title h2
+{
+    margin: 0;
 
-  color: #f4f4f4;
+    font-size: 30px;
 
-  font-size: 28px;
+    line-height: 1.2;
 
-  font-weight: 600;
+    color: #171827;
+
+    font-weight: 700;
 }
 
 
-.auth-header p {
-  margin: 0;
+.auth-title p
+{
+    margin: 10px 0 0;
 
-  color: #aaa;
+    color: #777985;
 
-  font-size: 14px;
+    font-size: 14px;
+
+    line-height: 1.5;
 }
 
 
-/* =========================================
-   FORMULAIRE
-   ========================================= */
+/* =====================================================
+   FORMULAIRE SSO
+===================================================== */
 
-.auth-form {
-  display: flex;
+.auth-form
+{
+    width: 100%;
 
-  flex-direction: column;
+    display: flex;
 
-  gap: 14px;
+    flex-direction: column;
+
+    gap: 13px;
 }
 
 
-/* =========================================
-   CHAMPS
-   ========================================= */
+/* =====================================================
+   BOUTONS GOOGLE / FACEBOOK / APPLE
+===================================================== */
 
-.input-group {
-  height: 56px;
+.sso-button
+{
+    width: 100%;
 
-  display: flex;
+    height: 52px;
 
-  align-items: center;
+    display: flex;
 
-  background: #111713;
+    align-items: center;
 
-  border: 1px solid #343b37;
+    justify-content: center;
 
-  border-radius: 12px;
+    gap: 12px;
 
-  overflow: hidden;
+    border: 1px solid #e3e3e7;
 
-  box-sizing: border-box;
+    border-radius: 26px;
 
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    background-color: white;
+
+    color: #25262e;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
 }
 
 
-.input-group:focus-within {
-  border-color: #cfc7a9;
+/* =====================================================
+   SURVOL DES BOUTONS
+===================================================== */
 
-  box-shadow:
-    0 0 0 2px rgba(207, 199, 169, 0.08);
+.sso-button:hover
+{
+    background-color: #f7f7f9;
+
+    border-color: #d5d5da;
 }
 
 
-/* =========================================
-   ICÔNE
-   ========================================= */
+/* =====================================================
+   QUAND ON CLIQUE
+===================================================== */
 
-.input-icon {
-  width: 54px;
-
-  min-width: 54px;
-
-  height: 100%;
-
-  display: flex;
-
-  justify-content: center;
-
-  align-items: center;
-
-  color: #929892;
+.sso-button:active
+{
+    transform: scale(0.98);
 }
 
 
-.input-icon svg {
-  width: 21px;
+/* =====================================================
+   BOUTON DÉSACTIVÉ
+===================================================== */
 
-  height: 21px;
+.sso-button:disabled
+{
+    opacity: 0.65;
+
+    cursor: not-allowed;
+
+    transform: none;
 }
 
 
-/* =========================================
-   INPUT
-   ========================================= */
+/* =====================================================
+   LOGOS GOOGLE / FACEBOOK / APPLE
+===================================================== */
 
-.input-group input {
-  flex: 1;
+.sso-icon
+{
+    width: 19px;
+    height: 19px;
 
-  height: 100%;
+    object-fit: contain;
 
-  border: none;
-
-  outline: none;
-
-  background: transparent;
-
-  color: #f2f2f2;
-
-  font-size: 15px;
-
-  padding: 0 15px 0 0;
-
-  box-sizing: border-box;
+    flex-shrink: 0;
 }
 
 
-.input-group input::placeholder {
-  color: #777d79;
+/* =====================================================
+   MESSAGE D'ERREUR
+===================================================== */
+
+.auth-message
+{
+    margin-top: 15px;
+
+    padding: 10px;
+
+    border-radius: 8px;
+
+    background-color: #fff0f0;
+
+    color: #d93030;
+
+    font-size: 12px;
+
+    text-align: center;
 }
 
 
-/* =========================================
-   MESSAGE
-   ========================================= */
+/*  ANIMATION IMAGE */
 
-.auth-message {
-  color: #d5cdb2;
+@keyframes imageFade
+{
+    from
+    {
+        opacity: 0;
+    }
 
-  font-size: 13px;
-
-  text-align: center;
-
-  line-height: 1.5;
-
-  margin: 3px 0;
+    to
+    {
+        opacity: 1;
+    }
 }
 
 
-/* =========================================
-   BOUTON
-   ========================================= */
+/*   ANIMATION TEXTE*/
 
-.auth-button {
-  width: 100%;
+@keyframes fadeIn
+{
+    from
+    {
+        opacity: 0;
+    }
 
-  height: 54px;
-
-  margin-top: 8px;
-
-  border: none;
-
-  border-radius: 12px;
-
-  background: #e4dcc2;
-
-  color: #11130f;
-
-  font-size: 15px;
-
-  font-weight: 700;
-
-  cursor: pointer;
-
-  transition:
-    background 0.2s ease,
-    transform 0.15s ease;
+    to
+    {
+        opacity: 1;
+    }
 }
 
 
-.auth-button:hover {
-  background: #eee7d1;
+/* ANIMATION CARTE*/
+
+@keyframes cardIn
+{
+    from
+    {
+        opacity: 0;
+
+        transform: translateY(30px);
+    }
+
+    to
+    {
+        opacity: 1;
+
+        transform: translateY(0);
+    }
 }
 
 
-.auth-button:active {
-  transform: scale(0.99);
+/*TABLETTE */
+
+@media (max-width: 900px)
+{
+    .auth-left
+    {
+        width: 42%;
+    }
+
+    .auth-right
+    {
+        width: 58%;
+
+        padding: 25px;
+    }
+
+    .auth-left-content
+    {
+        width: 85%;
+
+        top: 55px;
+    }
+
+    .auth-left-content h1
+    {
+        font-size: 25px;
+    }
+
+    .auth-card
+    {
+        max-width: 420px;
+
+        padding: 30px;
+    }
+
+    .auth-title h2
+    {
+        font-size: 27px;
+    }
 }
 
 
-.auth-button:disabled {
-  opacity: 0.6;
+/* TÉLÉPHONE */
 
-  cursor: not-allowed;
+@media (max-width: 700px)
+{
+    .auth-page
+    {
+        flex-direction: column;
+
+        min-height: auto;
+    }
+
+
+    /*  IMAGE\ */
+
+    .auth-left
+    {
+        width: 100%;
+
+        height: 300px;
+
+        flex-shrink: 0;
+    }
+
+
+    .auth-background
+    {
+        width: 100%;
+        height: 100%;
+
+        object-fit: cover;
+
+        object-position: center center;
+    }
+
+
+    /*  TEXTE SUR L'IMAGE */
+
+    .auth-left-content
+    {
+        top: 50%;
+
+        left: 50%;
+
+        transform: translate(-50%, -50%);
+
+        width: 88%;
+    }
+
+
+    .auth-left-content h1
+    {
+        max-width: 100%;
+
+        font-size: 25px;
+
+        line-height: 1.3;
+
+        text-align: center;
+    }
+
+
+    /*  TEXTE DU BAS */
+
+    .auth-footer-text
+    {
+        margin-top: 25px;
+    }
+
+
+    .auth-footer-text p
+    {
+        font-size: 13px;
+
+        margin: 0;
+    }
+
+
+    /* PARTIE DROITE */
+
+    .auth-right
+    {
+        width: 100%;
+
+        padding: 25px 20px 40px;
+
+        align-items: flex-start;
+
+        background-color: #f7f8fc;
+    }
+
+
+    /*  CARTE */
+
+    .auth-card
+    {
+        width: 100%;
+
+        max-width: 500px;
+
+        margin: 0 auto;
+
+        padding: 30px 22px;
+
+        border-radius: 16px;
+
+        box-shadow:
+            0 5px 20px rgba(30, 30, 50, 0.07);
+    }
+
+
+    /* TITRE */
+
+    .auth-title
+    {
+        margin-bottom: 23px;
+    }
+
+
+    .auth-title h2
+    {
+        font-size: 25px;
+    }
+
+
+    .auth-title p
+    {
+        font-size: 14px;
+
+        line-height: 1.5;
+    }
+
+
+    /*  BOUTONS SSO */
+
+    .sso-button
+    {
+        height: 50px;
+
+        font-size: 14px;
+    }
+
+
+    .sso-icon
+    {
+        width: 18px;
+        height: 18px;
+    }
 }
 
 
-/* =========================================
-   LIEN INSCRIPTION
-   ========================================= */
+/*  PETIT TÉLÉPHONE*/
 
-.auth-switch {
-  display: flex;
+@media (max-width: 480px)
+{
+    .auth-left
+    {
+        height: 270px;
+    }
 
-  justify-content: center;
 
-  align-items: center;
+    .auth-background
+    {
+        object-fit: cover;
 
-  gap: 5px;
+        object-position: center center;
+    }
 
-  margin-top: 28px;
 
-  color: #969b97;
+    .auth-left-content
+    {
+        width: 90%;
+    }
 
-  font-size: 13px;
+
+    .auth-left-content h1
+    {
+        font-size: 22px;
+
+        line-height: 1.3;
+    }
+
+
+    .auth-footer-text
+    {
+        margin-top: 20px;
+    }
+
+
+    .auth-footer-text p
+    {
+        font-size: 12px;
+    }
+
+
+    .auth-right
+    {
+        padding: 20px 15px 30px;
+    }
+
+
+    .auth-card
+    {
+        padding: 26px 18px;
+
+        border-radius: 14px;
+    }
+
+
+    .auth-title h2
+    {
+        font-size: 23px;
+    }
+
+
+    .auth-title p
+    {
+        font-size: 13px;
+    }
+
+
+    .sso-button
+    {
+        height: 48px;
+
+        font-size: 13px;
+    }
+
+
+    .sso-icon
+    {
+        width: 17px;
+        height: 17px;
+    }
 }
 
 
-.auth-switch button {
-  border: none;
+/* TRÈS PETIT TÉLÉPHONE*/
 
-  background: transparent;
+@media (max-width: 360px)
+{
+    .auth-left
+    {
+        height: 240px;
+    }
 
-  color: #d9cd9c;
 
-  font-size: 13px;
+    .auth-left-content h1
+    {
+        font-size: 20px;
+    }
 
-  font-weight: 600;
 
-  cursor: pointer;
+    .auth-footer-text p
+    {
+        font-size: 11px;
+    }
 
-  padding: 0;
+
+    .auth-card
+    {
+        padding: 23px 15px;
+    }
+
+
+    .auth-title h2
+    {
+        font-size: 21px;
+    }
+
+
+    .auth-title p
+    {
+        font-size: 12px;
+    }
+
+
+    .sso-button
+    {
+        height: 46px;
+
+        font-size: 12px;
+    }
+
+
+    .sso-icon
+    {
+        width: 16px;
+        height: 16px;
+    }
 }
 
 
-.auth-switch button:hover {
-  color: #eee6c5;
+/* ACCESSIBILITÉ*/
 
-  text-decoration: underline;
-}
+@media (prefers-reduced-motion: reduce)
+{
+    .auth-background,
+    .auth-left-content,
+    .auth-card
+    {
+        animation: none;
+    }
 
-
-/* =========================================
-   RESPONSIVE
-   ========================================= */
-
-@media (max-width: 500px) {
-
-  .auth-page {
-    padding: 20px 15px;
-  }
-
-  .auth-card {
-    padding: 30px 24px 32px;
-
-    border-radius: 18px;
-  }
-
-  .auth-header h2 {
-    font-size: 25px;
-  }
-
+    .sso-button
+    {
+        transition: none;
+    }
 }

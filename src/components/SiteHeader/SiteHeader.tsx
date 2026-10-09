@@ -223,10 +223,11 @@ export default function SiteHeader({ variant, page }: { variant: SiteHeaderVaria
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <circle cx="12" cy="8" r="3.5" />
                   <path d="M5.5 20c.5-4 2.7-6 6.5-6s6 2 6.5 6" />
-                </svg>
+                </svg> 
               </button>
               {accountOpen && (
                 <div className="site-header__menu site-header__menu--right" role="menu">
+                
                   <button
                     type="button"
                     role="menuitem"

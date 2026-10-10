@@ -1,0 +1,296 @@
+/*
+   BOUTONS DE CONTRÔLE (bas droite)
+   Zoom, type de carte, bascule pylônes + bouton sécurité
+ */
+
+.zoom-controls,
+.zoom-controls-bottom-right {
+    position: absolute !important;
+    top: auto !important;
+    left: auto !important;
+    right: 20px !important;
+    bottom: 30px !important;
+    z-index: 99999 !important;
+    /* ⬅️ AU-DESSUS des tuiles Google */
+    display: flex !important;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: auto !important;
+}
+
+.zoom-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid #e8e8ec;
+    background: rgba(255, 255, 255, .98);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    color: #16161a;
+    font: 500 1.4rem 'Inter', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+    box-shadow: 0 12px 40px rgba(22, 22, 26, .10), 0 30px 80px rgba(22, 22, 26, .12);
+    transition: background .2s ease, color .2s ease, transform .2s ease, border-color .2s ease;
+    pointer-events: auto !important;
+}
+
+.zoom-btn:hover {
+    background: #eef2ff;
+    color: #1e3fbf;
+    transform: translateY(-1px);
+}
+
+.zoom-btn-type {
+    font-size: 1.15rem;
+}
+
+/*
+   BOUTON FLOTTANT : replier/déplier le panneau sécurité
+ */
+
+.securite-toggle-btn {
+    position: absolute !important;
+    top: auto !important;
+    left: auto !important;
+    bottom: 30px !important;
+    right: 84px !important;
+    /* à gauche des zoom controls */
+    z-index: 99999 !important;
+    /* ⬅️ AU-DESSUS des tuiles Google */
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, .98);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    color: #16161a;
+    border: 1px solid #e8e8ec;
+    border-radius: 999px;
+    font: 600 .82rem 'Inter', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 12px 40px rgba(22, 22, 26, .10), 0 30px 80px rgba(22, 22, 26, .12);
+    transition: background .2s ease, color .2s ease, transform .2s ease, border-color .2s ease;
+    pointer-events: auto !important;
+}
+
+.securite-toggle-btn:hover {
+    background: #eef2ff;
+    color: #1e3fbf;
+    transform: translateY(-1px);
+}
+
+.securite-toggle-btn:active {
+    transform: translateY(0);
+}
+
+.securite-toggle-btn.actif {
+    background: #2f5fff;
+    color: #fff;
+    border-color: #2f5fff;
+}
+
+.securite-toggle-icon {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.securite-toggle-label {
+    white-space: nowrap;
+}
+
+/* Sur mobile */
+@media (max-width: 800px) {
+
+    .zoom-controls,
+    .zoom-controls-bottom-right {
+        right: 12px !important;
+        bottom: 20px !important;
+    }
+
+    .securite-toggle-btn {
+        right: 76px !important;
+        bottom: 20px !important;
+        padding: 10px 12px;
+        font-size: .78rem;
+    }
+
+    .securite-toggle-label {
+        display: none;
+    }
+}
+
+/* ─── Bouton flottant : ouvrir l'itinéraire ─── */
+.itineraire-toggle-btn {
+    position: absolute !important;
+    top: auto !important;
+    left: auto !important;
+    bottom: 30px !important;
+    right: 240px !important;
+    z-index: 99999 !important;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #2f5fff;
+    color: #fff;
+    border: 1px solid #2f5fff;
+    border-radius: 999px;
+    font: 600 .82rem 'Inter', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 12px 40px rgba(47, 95, 255, .25), 0 30px 80px rgba(47, 95, 255, .15);
+    transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
+    pointer-events: auto !important;
+}
+
+.itineraire-toggle-btn:hover {
+    background: #1e3fbf;
+    transform: translateY(-1px);
+}
+
+.itineraire-toggle-icon {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.itineraire-toggle-label {
+    white-space: nowrap;
+}
+
+@media (max-width: 800px) {
+    .itineraire-toggle-btn {
+        right: 220px !important;
+        bottom: 20px !important;
+        padding: 10px 12px;
+        font-size: .78rem;
+    }
+
+    .itineraire-toggle-label {
+        display: none;
+    }
+}
+
+/*
+   ═════════ BOUTON FLOTTANT : ouvrir l'itinéraire ═════════
+ */
+
+.itineraire-toggle-btn {
+    position: absolute !important;
+    top: auto !important;
+    left: auto !important;
+    bottom: 30px !important;
+    right: 260px !important;
+    /* à gauche du bouton infos */
+    z-index: 99999 !important;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #2f5fff;
+    color: #fff;
+    border: 1px solid #2f5fff;
+    border-radius: 999px;
+    font: 600 .82rem 'Inter', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 12px 40px rgba(47, 95, 255, .25), 0 30px 80px rgba(47, 95, 255, .15);
+    transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
+    pointer-events: auto !important;
+}
+
+.itineraire-toggle-btn:hover {
+    background: #1e3fbf;
+    transform: translateY(-1px);
+}
+
+.itineraire-toggle-icon {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.itineraire-toggle-label {
+    white-space: nowrap;
+}
+
+/*
+   ═════════ BOUTON FLOTTANT : ouvrir/fermer la fiche informations ═════════
+ */
+
+.info-toggle-btn {
+    position: absolute !important;
+    top: auto !important;
+    left: auto !important;
+    bottom: 30px !important;
+    right: 84px !important;
+    /* même place que le bouton sécurité */
+    z-index: 99999 !important;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, .98);
+    color: #16161a;
+    border: 1px solid #e8e8ec;
+    border-radius: 999px;
+    font: 600 .82rem 'Inter', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 12px 40px rgba(22, 22, 26, .10), 0 30px 80px rgba(22, 22, 26, .12);
+    transition: background .2s ease, color .2s ease, transform .2s ease, border-color .2s ease;
+    pointer-events: auto !important;
+}
+
+.info-toggle-btn:hover {
+    background: #eef2ff;
+    color: #1e3fbf;
+    transform: translateY(-1px);
+}
+
+.info-toggle-btn.actif {
+    background: #2f5fff;
+    color: #fff;
+    border-color: #2f5fff;
+}
+
+.info-toggle-icon {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.info-toggle-label {
+    white-space: nowrap;
+}
+
+/*
+   ═════════ Positionnement en cascade (de droite à gauche) ═════════
+   Zoom controls      : right: 20px
+   Sécurité           : right: 84px   → remplacé par Infos
+   Infos              : right: 84px
+   Itinéraire         : right: 260px
+   Sécurité           : désormais right: 430px (optionnel si vous le gardez)
+ */
+
+/* Mobile : icônes seules */
+@media (max-width: 800px) {
+    .itineraire-toggle-btn {
+        right: 220px !important;
+        bottom: 20px !important;
+        padding: 10px 12px;
+        font-size: .78rem;
+    }
+
+    .info-toggle-btn {
+        right: 76px !important;
+        bottom: 20px !important;
+        padding: 10px 12px;
+        font-size: .78rem;
+    }
+
+    .itineraire-toggle-label,
+    .info-toggle-label {
+        display: none;
+    }
+}

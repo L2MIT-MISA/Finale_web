@@ -1,0 +1,203 @@
+/* Fiche du lieu trouvé (place-card) + panneau sécurité intégré */
+
+.place-card {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(440px, calc(100vw - 24px));
+    max-height: min(70vh, 640px);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px 20px;
+    background: rgba(255, 255, 255, .98);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    box-shadow: var(--shadow-lg);
+    animation: monte .25s var(--ease);
+    overflow: hidden;
+}
+
+@keyframes monte {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+/* ═════════ Corps de la fiche ═════════ */
+
+.place-card-body {
+    flex-shrink: 0;
+    min-width: 0;
+}
+
+.place-card-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    line-height: 1.25;
+    color: var(--ink);
+}
+
+.place-card-addr {
+    margin-top: 2px;
+    font-size: .82rem;
+    color: var(--ink-soft);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.place-card-coords {
+    margin-top: 6px;
+    font-size: .72rem;
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ═════════ Actions ═════════ */
+
+.place-card-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.btn-icon {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* ═════════ Zone sécurité intégrée (SecuriteLieu / PanneauSecurite) ═════════ */
+
+.place-card-securite {
+    margin-top: 4px;
+    flex: 1;
+    min-height: 0;
+    max-height: 45vh;
+    overflow-y: auto;
+    padding-right: 4px;
+    /* place pour la scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+}
+
+.place-card-securite::-webkit-scrollbar {
+    width: 6px;
+}
+
+.place-card-securite::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border-radius: 3px;
+}
+
+.place-card-securite::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* Si SecuriteLieu est rendu en mode "intégré", on annule son positionnement flottant */
+.place-card-securite .secu-panel,
+.place-card-securite .secu-integre {
+    position: static;
+    width: 100%;
+    max-height: none;
+    box-shadow: none;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+}
+
+/* ═════════ État replié ═════════
+   Quand ConnecteoMap passe `replie={true}` au panneau de sécurité,
+   on masque la zone de contenu et on ne garde que l'en-tête. */
+
+.place-card.replie .place-card-securite {
+    max-height: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    transition: max-height .25s var(--ease);
+}
+
+.place-card:not(.replie) .place-card-securite {
+    transition: max-height .25s var(--ease);
+}
+
+/* ═════════ Responsive ═════════ */
+
+@media (max-width: 800px) {
+    .place-card {
+        left: 12px;
+        right: 68px;
+        bottom: 20px;
+        width: auto;
+        max-height: 62vh;
+        transform: none;
+        animation: none;
+        border-radius: 16px;
+        padding: 16px;
+    }
+
+    .place-card-securite {
+        max-height: 38vh;
+    }
+
+    .place-card-title {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 500px) {
+    .place-card {
+        left: 8px;
+        right: 64px;
+        bottom: 16px;
+        padding: 14px;
+    }
+
+    .place-card-actions {
+        flex-wrap: wrap;
+    }
+
+    .place-card-actions .btn-primary,
+    .place-card-actions .btn-ghost {
+        flex: 1 1 auto;
+    }
+
+    .place-card-securite {
+        max-height: 34vh;
+    }
+}
+
+/* ═════════ État replié de la fiche ═════════ */
+
+.place-card.replie {
+    max-height: none;
+    gap: 0;
+}
+
+.place-card.replie .place-card-body,
+.place-card.replie .place-card-securite {
+    display: none;
+}
+
+.place-card.replie .place-card-actions {
+    margin-top: 0;
+}

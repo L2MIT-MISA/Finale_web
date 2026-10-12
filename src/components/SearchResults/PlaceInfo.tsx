@@ -10,7 +10,6 @@ import { fmt1, hueDe, typeDe } from "./placeFormat";
 interface Props {
   lieu: Lieu;
   sources: SourceIA[];
-  /** « Voir l'itinéraire » (carte Transport) : demande à la carte de tracer la route vers ce lieu. */
   onItineraire: () => void;
 }
 

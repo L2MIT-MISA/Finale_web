@@ -8,7 +8,7 @@ import {
     SEUIL_M
 } from './reseau';
 import type { Pylone } from './reseau';
-import './style/ConnecteoLieu.css';
+import './style/ConnectiviteLieu.css';
 
 interface Props {
     position: { lat: number; lng: number };

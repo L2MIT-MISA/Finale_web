@@ -1,114 +1,76 @@
 import { supabase } from './supabase';
 
 
-const AUTH_DOMAIN = 'zbzghokzcdiozscitetk.supabase.co';
 
-function usernameToEmail(username: string): string {
-  return `${username.toLowerCase()}@${AUTH_DOMAIN}`;
-}
 
-/**
- * Vérifie si un nom d'utilisateur est disponible.
- *
- * true  = disponible
- * false = déjà utilisé
- */
-export async function isUsernameAvailable(username: string): Promise<boolean> {
-  const normalizedUsername = username
-    .trim()
-    .toLowerCase();
 
-  const { data, error } = await supabase.rpc(
-    'is_username_available',
-    {
-      p_username: normalizedUsername,
-    }
-  );
 
-  if (error) {
-    throw error;
-  }
+// ================================
+// CONNEXION GOOGLE
+// ================================
 
-  return data === true;
-}
-
-/**
- * Inscription
- */
-export async function signUp(username: string,password: string) 
+export async function signInWithGoogle()
 {
-  const normalizedUsername = username
-    .trim()
-    .toLowerCase();
+    return await supabase.auth.signInWithOAuth({
+        provider: "google",
 
-  const { data, error } =await supabase.auth.signUp({email: usernameToEmail(normalizedUsername),password,
-      options: {
-        data: {
-          username: normalizedUsername,
+        options: {
+            redirectTo: `${window.location.origin}/user`,
         },
-      },
+    });
+}
+
+// Connexion avec Facebook
+export async function signInWithFacebook() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+            redirectTo: `${window.location.origin}/user`,
+        },
     });
 
-  return {
-    data,
-    error,
-  };
-}
-
-/**
- * Connexion
- */
-export async function signIn(username: string,password: string) {
-  const normalizedUsername = username
-    .trim()
-    .toLowerCase();
-
-  const { data, error } =
-    await supabase.auth.signInWithPassword({
-      email: usernameToEmail(normalizedUsername),
-      password,
-    });
-
-  return {
-    data,
-    error,
-  };
-}
-
-/**
- * Déconnexion
- */
-export async function signOut() {
-  return await supabase.auth.signOut();
-}
-
-/**
- * Récupérer le profil de l'utilisateur connecté
- */
-export async function getCurrentUserProfile() {
-  const {data: { user },
-} = await supabase.auth.getUser();
-
-  if (!user) {
     return {
-      user: null,
-      profile: null,
-      error: null,
+        data,
+        error,
     };
-  }
+}
 
-  const { data: profile, error } =
-    await supabase
-      .from('users')
-      .select(
-        'id, username, role, created_at'
-      )
-      .eq('id', user.id)
-      .single();
+// ================================
+// UTILISATEUR CONNECTÉ
+// ================================
 
-  return {
-    user,
-    profile,
-    error,
-  };
+export async function getCurrentUserProfile()
+{
+    const { data, error } = await supabase.auth.getUser();
+
+    if (error || !data.user)
+    {
+        return { profile: null, error: error ?? new Error("Non connecté") };
+    }
+
+    const user = data.user;
+    const meta = user.user_metadata;
+
+    // Google et Facebook fournissent "full_name" (ou "name")
+    const fullName: string = meta.full_name ?? meta.name ?? user.email ?? "";
+
+    const profile = {
+        id: user.id,
+        email: user.email ?? "",
+        first_name: fullName.split(" ")[0],
+        avatar_url:  data.user?.user_metadata?.avatar_url || data.user?.user_metadata?.picture,
+        role: "USER",
+    };
+
+    return { profile, error: null };
+}
+
+
+// ================================
+// DÉCONNEXION
+// ================================
+
+export async function signOut()
+{
+    return await supabase.auth.signOut();
 }

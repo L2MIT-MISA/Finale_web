@@ -63,3 +63,16 @@ export async function chargerConnectivite(lat: number, lng: number, signal?: Abo
   const brut: ConnectiviteIA = { available: Object.keys(operators).length > 0, operators };
   return connectiviteDe(brut);
 }
+
+// Cache partagé (liste + fiche du lieu) : une seule requête par position, même si plusieurs composants la demandent.
+const cache = new Map<string, Promise<Connectivite | null>>();
+
+export function chargerConnectiviteEnCache(lat: number, lng: number): Promise<Connectivite | null> {
+  const cle = `${lat.toFixed(4)}|${lng.toFixed(4)}`;
+  let promesse = cache.get(cle);
+  if (!promesse) {
+    promesse = chargerConnectivite(lat, lng).catch(() => null);
+    cache.set(cle, promesse);
+  }
+  return promesse;
+}

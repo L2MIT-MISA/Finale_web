@@ -81,6 +81,8 @@ interface CarteProps {
     carte?: CarteInfo | null;
     selected?: LieuExterne | null;
     demandeItineraire?: number;
+    /** La fiche détaillée est affichée à côté de la carte : on n'affiche pas la petite fiche sur la carte pour le lieu choisi dans la liste. */
+    masquerFicheSelection?: boolean;
     onSelect?: (l: LieuExterne) => void;
 }
 
@@ -851,6 +853,7 @@ function Carte({
     carte = null,
     selected = null,
     demandeItineraire = 0,
+    masquerFicheSelection = false,
     onSelect
 }: CarteProps) {
     // 'recherche' = une seule barre en haut ; 'itineraire' = panneau latéral
@@ -892,6 +895,11 @@ function Carte({
 
     const lieu = lieuRecherche ?? lieuSelectionne;
     const setLieu = setLieuRecherche;
+    // Numéro du lieu choisi dans la liste (0 = lieu issu de la barre de recherche de la carte)
+    const numeroSelection = lieuRecherche
+        ? 0
+        : lieux.findIndex((l) => l.id === selId) + 1;
+    const ficheSurLaCarte = !(masquerFicheSelection && !lieuRecherche);
 
     const [resultats, setResultats] = useState<ResultatsParMode | null>(null);
     const [modeActif, setModeActif] = useState<ModeId | null>(null);
@@ -1001,21 +1009,21 @@ function Carte({
                                 >
                                     <div
                                         style={{
-                                            width: 30,
-                                            height: 30,
+                                            width: 36,
+                                            height: 36,
                                             borderRadius: '50%',
-                                            background: '#2f5fff',
-                                            color: '#fff',
-                                            border: `3px ${l.approximatif ? 'dashed' : 'solid'
-                                                } #fff`,
+                                            background: '#fff',
+                                            color: '#15171a',
+                                            border: `2px ${l.approximatif ? 'dashed' : 'solid'
+                                                } #2f5bff`,
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                             fontWeight: 700,
-                                            fontSize: 13,
+                                            fontSize: 14,
                                             cursor: 'pointer',
-                                            boxShadow:
-                                                '0 4px 14px rgba(47, 95, 255, .5), 0 2px 6px rgba(0, 0, 0, .4)'
+                                            opacity: lieuSelectionne ? 0.7 : 1,
+                                            boxShadow: '0 4px 10px rgba(21, 23, 26, .25)'
                                         }}
                                     >
                                         {i + 1}
@@ -1035,7 +1043,29 @@ function Carte({
                                 title={lieu.libelle}
                                 anchorPoint={AdvancedMarkerAnchorPoint.CENTER}
                             >
-                                <div className="marker-pin marker-end">📍</div>
+                                {numeroSelection > 0 ? (
+                                    <div
+                                        style={{
+                                            width: 48,
+                                            height: 48,
+                                            borderRadius: '50%',
+                                            background: '#2f5bff',
+                                            color: '#fff',
+                                            border: '3px solid #fff',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontWeight: 700,
+                                            fontSize: 17,
+                                            boxShadow:
+                                                '0 0 0 3px #2f5bff, 0 8px 18px rgba(21, 23, 26, .35)'
+                                        }}
+                                    >
+                                        {numeroSelection}
+                                    </div>
+                                ) : (
+                                    <div className="marker-pin marker-end">📍</div>
+                                )}
                             </AdvancedMarker>
                             <AllerA lieu={lieu} />
                         </>
@@ -1086,7 +1116,7 @@ function Carte({
             </APIProvider>
 
             {/* Fiche lieu (repliable) */}
-            {vue === 'recherche' && lieu && (
+            {vue === 'recherche' && lieu && ficheSurLaCarte && (
                 <FicheLieu
                     lieu={lieu}
                     onItineraire={() => setVue('itineraire')}

@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap");
 
 .search-map-page,
 .search-page-state {
@@ -21,14 +21,79 @@
   inset: 0;
   z-index: 1;
   display: grid;
-  grid-template-columns: 320px 1fr;
-  padding-top: 64px;
+  grid-template-columns: 380px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  /* sous l'en-tête flottant du site (≈ 82 px) */
+  padding-top: 84px;
+  text-align: left;
+}
+
+/* Liste + fiche du lieu : discussion/liste · fiche · carte */
+.search-map-page.has-detail { grid-template-columns: 380px 380px minmax(0, 1fr); }
+
+/* Discussion seule : photo de fond de l'accueil (au lieu du fond blanc de la maquette), même voile sombre que l'accueil */
+.search-map-page.is-talk {
+  grid-template-columns: minmax(0, 1.2fr) minmax(420px, 1fr);
+  background:
+    linear-gradient(180deg, rgba(8, 12, 52, .6) 0%, rgba(10, 16, 70, .4) 40%, rgba(8, 12, 52, .55) 100%),
+    linear-gradient(90deg, rgba(8, 12, 52, .55) 0%, rgba(8, 12, 52, .1) 60%),
+    var(--sr-fond) center / cover no-repeat,
+    #070b2e;
 }
 
 .search-map-side {
+  position: relative;
   min-height: 0;
   border-right: 1px solid var(--sr-line);
   background: #ffffff;
+  animation: srFade .5s ease both;
+}
+
+.is-talk .search-map-side {
+  display: flex;
+  border-right: 0;
+  background: transparent;
+  padding: 24px 40px 24px 0;
+}
+
+.sr-chat-wrap { height: 100%; min-height: 0; }
+
+/* La discussion flottante vit dans ce panneau : il doit passer au-dessus de la carte (qui vient après dans la page) */
+.is-list .search-map-side { z-index: 5; }
+
+/* Discussion seule : carte blanche légèrement translucide au-dessus de la photo */
+.is-talk .sr-chat-wrap {
+  flex: 1;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  border-radius: 24px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 24px 70px rgba(5, 8, 40, .45);
+  backdrop-filter: blur(20px);
+}
+
+/* Liste affichée : la discussion passe en panneau flottant au-dessus de la carte */
+.is-list .sr-chat-wrap {
+  position: fixed;
+  z-index: 30;
+  right: 28px;
+  top: 96px;
+  bottom: 24px;
+  width: min(410px, calc(100vw - 420px));
+  height: auto;
+  border: 1px solid rgba(220, 226, 240, .9);
+  border-radius: 24px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 24px 70px rgba(31, 45, 85, .18);
+  backdrop-filter: blur(20px);
+}
+
+/* Les boutons de zoom de la carte passent à gauche de la discussion flottante */
+.is-list .sr-map-wrap .zoom-controls-bottom-right {
+  right: calc(min(410px, 100vw - 420px) + 48px) !important;
 }
 
 .search-map-column {
@@ -37,6 +102,7 @@
   display: flex;
   flex-direction: column;
   background: #f6f7f4;
+  animation: srFade .6s ease both;
 }
 
 .sr-map-wrap {
@@ -45,6 +111,12 @@
   min-height: 260px;
   overflow: hidden;
   background: #e4ece6;
+}
+
+@keyframes srFade { from { opacity: 0; } to { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .search-map-side, .search-map-column, .sr-detail, .sr-intro-inner, .sr-toast { animation: none !important; }
 }
 
 .search-page-state {
@@ -106,10 +178,30 @@
   to { transform: rotate(360deg); }
 }
 
+@media (max-width: 1100px) {
+  /* trop étroit pour une discussion flottante : on revient à la discussion avec « Revenir à la discussion » */
+  .is-list .sr-chat-wrap { display: none; }
+  .is-list .sr-map-wrap .zoom-controls-bottom-right { right: 20px !important; }
+}
+
+@media (max-width: 900px) {
+  .search-map-page.has-detail { grid-template-columns: 320px 320px minmax(0, 1fr); }
+  .search-map-page { grid-template-columns: 320px minmax(0, 1fr); }
+  .search-map-page.is-talk { grid-template-columns: minmax(0, 1fr) minmax(380px, 1fr); }
+}
+
 @media (max-width: 760px) {
-  .search-map-page {
+  .search-map-page,
+  .search-map-page.has-detail {
     display: block;
     overflow-y: auto;
+  }
+
+  .is-talk .sr-intro { display: none; }
+
+  .is-talk .search-map-side {
+    height: calc(100vh - 84px);
+    padding: 12px;
   }
 
   .search-map-column {
@@ -121,8 +213,10 @@
     height: 56vh;
   }
 
-  .sr-info {
-    flex: none;
+  .sr-detail {
+    height: auto;
+    border-right: 0;
+    border-top: 1px solid var(--sr-line);
   }
 
   .search-map-side {

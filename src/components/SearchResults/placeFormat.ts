@@ -23,3 +23,8 @@ export function libellePrecision(l: Lieu) {
 export function urlHttp(u?: string | null) {
   return u && /^https?:\/\//i.test(u) ? u : null;
 }
+
+// Clé stable d'un lieu (l'identifiant dépend de l'ordre des résultats) : sert à mémoriser les lieux enregistrés.
+export function cleLieu(l: Lieu) {
+  return `${l.nom}|${l.position.lat.toFixed(5)}|${l.position.lng.toFixed(5)}`;
+}

@@ -14,11 +14,14 @@ interface Props {
   busy: boolean;
   total: number;
   triees: boolean;
+  /** Affiche la pastille « N lieux » et la carte « Voir les lieux trouvés » (vue discussion à côté de la carte). */
+  showFound: boolean;
+  placeholder?: string;
   onSend: (texte: string) => void;
   onShowList: () => void;
 }
 
-export default function ChatPanel({ messages, busy, total, triees, onSend, onShowList }: Props) {
+export default function ChatPanel({ messages, busy, total, triees, showFound, placeholder = "Posez votre question...", onSend, onShowList }: Props) {
   const [valeur, setValeur] = useState("");
   const corps = useRef<HTMLDivElement>(null);
   const pret = valeur.trim().length > 0 && !busy;
@@ -43,7 +46,7 @@ export default function ChatPanel({ messages, busy, total, triees, onSend, onSho
           <div className="sr-chat-label">ASSISTANT CONNECTÉO</div>
           <div className="sr-chat-sub">Je vous aide à trouver le bon lieu</div>
         </div>
-        {total > 0 && <span className="sr-chip-count">{plur(total, "lieu", "lieux")}</span>}
+        {showFound && total > 0 && <span className="sr-chip-count">{plur(total, "lieu", "lieux")}</span>}
       </div>
 
       <div className="sr-chat-body" ref={corps} aria-live="polite">
@@ -64,7 +67,7 @@ export default function ChatPanel({ messages, busy, total, triees, onSend, onSho
           <div className="sr-bubble ai sr-typing" aria-label="L'assistant réfléchit"><span /><span /><span /></div>
         )}
 
-        {!busy && total > 0 && (
+        {!busy && showFound && total > 0 && (
           <div className="sr-found">
             <div className="sr-found-title">{plur(total, "lieu trouvé", "lieux trouvés")}</div>
             {triees && <div className="sr-found-sub">Classés par pertinence.</div>}
@@ -80,7 +83,7 @@ export default function ChatPanel({ messages, busy, total, triees, onSend, onSho
           type="text"
           value={valeur}
           onChange={(e) => setValeur(e.target.value)}
-          placeholder="Posez votre question..."
+          placeholder={placeholder}
           autoComplete="off"
         />
         <button type="submit" className={`sr-send${pret ? " on" : ""}`} disabled={!pret} aria-label="Envoyer"><SendIcon /></button>

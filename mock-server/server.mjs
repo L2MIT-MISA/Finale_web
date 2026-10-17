@@ -2,7 +2,8 @@
 // Aucune dépendance (Node 18+). Pour tout enlever : supprimer ce dossier.
 //
 // Routes simulées :
-//   POST /assistant             -> IA (voir ia-mock.mjs) : JSON { requete, reponse, lieux, carte, ... }
+//   POST /chat                  -> IA (front actuel)
+//   POST /assistant             -> IA (ancienne route) (voir ia-mock.mjs) : JSON { requete, reponse, lieux, carte, ... }
 //   GET  /mock-images/:i-:k.svg -> photos de démo référencées par les lieux
 //   GET  /api/pylones/bbox      -> backend Python + Neo4j (pylônes dans une zone)
 //   GET  /api/pylones           -> backend Python + Neo4j (tous les pylônes)
@@ -116,6 +117,23 @@ const server = http.createServer(async (req, res) => {
   res.on("finish", () => console.log(`${req.method} ${url.pathname} -> ${res.statusCode} (${Date.now() - started} ms)`));
 
   if (req.method === "OPTIONS") { res.writeHead(204); return res.end(); }
+
+  // IA : route appelée par le front actuel (src/services/assistant.ts) -> POST /chat { message, session_id, requete_id }
+  if (req.method === "POST" && url.pathname === "/chat") {
+    const body = await readJson(req);
+    await sleep(DELAY_MS);
+    const texte = typeof body?.message === "string" ? body.message.trim() : "";
+    if (!texte) return send(res, 400, { detail: "Le champ 'message' est obligatoire." });
+    const rep = simulerIA(texte, `http://${req.headers.host}`);
+    const avecLieux = rep.lieux.length > 0;
+    return send(res, 200, {
+      ...rep,
+      session_id: body.session_id ?? "mock-session",
+      garder_resultats: false,
+      ouvrir_carte: false, // passer à true pour ouvrir directement la liste des lieux
+      suggestions: avecLieux ? ["Hôtel près d'Analakely", "Où trouver de la 4G ?"] : [],
+    });
+  }
 
   // IA
   if (req.method === "POST" && url.pathname === "/assistant") {

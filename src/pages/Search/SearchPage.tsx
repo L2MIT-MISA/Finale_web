@@ -32,6 +32,10 @@ export default function SearchPage() {
   const [demandeItineraire, setDemandeItineraire] = useState(0);
   const [vue, setVue] = useState<"chat" | "liste">("chat");
   const [busy, setBusy] = useState(Boolean(initiale));
+  const [infoMasquee, setInfoMasquee] = useState(false);
+  // Faux tant que l'utilisateur n'a pas ouvert la carte : le chat occupe alors tout l'écran (arrivée depuis l'accueil).
+  // Une fois la carte ouverte, elle reste en place et la discussion revient dans le panneau latéral.
+  const [carteOuverte, setCarteOuverte] = useState(false);
 
   const idRef = useRef(1);
   const ctrlRef = useRef<AbortController | null>(null);
@@ -59,7 +63,9 @@ export default function SearchPage() {
           setCarte(rep.carte ?? null);
           setSelectedId(null);
         }
-        setVue(rep.ouvrir_carte && nouveaux.length > 0 ? "liste" : "chat");
+        const versListe = Boolean(rep.ouvrir_carte) && nouveaux.length > 0;
+        if (versListe) setCarteOuverte(true);
+        setVue(versListe ? "liste" : "chat");
         const textes = messagesDe(rep);
         textes.forEach((t, index) => ajouter("ai", t, index === textes.length - 1 ? rep.suggestions : undefined));
       } catch {
@@ -91,7 +97,7 @@ export default function SearchPage() {
   const triees = lieux.length > 1;
 
   return (
-    <main className="search-map-page">
+    <main className={`search-map-page${carteOuverte ? "" : " chat-plein"}`}>
       <aside className="search-map-side">
         {vue === "chat" ? (
           <ChatPanel
@@ -100,7 +106,7 @@ export default function SearchPage() {
             total={lieux.length}
             triees={triees}
             onSend={envoyer}
-            onShowList={() => { setSelectedId(null); setVue("liste"); }}
+            onShowList={() => { setSelectedId(null); setCarteOuverte(true); setVue("liste"); }}
           />
         ) : (
           <PlacesList
@@ -112,25 +118,30 @@ export default function SearchPage() {
         )}
       </aside>
 
-      <section className="search-map-column" aria-label="Carte et informations">
-        <div className="sr-map-wrap">
-          <ConnecteoMap
-            lieux={lieux}
-            carte={carte}
-            selected={selected}
-            demandeItineraire={demandeItineraire}
-            onSelect={(l) => setSelectedId(String(l.id))}
-          />
-        </div>
-        {selected && (
-          <PlaceInfo
-            key={selected.id}
-            lieu={selected}
-            sources={sources}
-            onItineraire={() => setDemandeItineraire((n) => n + 1)}
-          />
-        )}
-      </section>
+      {/* La carte n'apparaît qu'une fois ouverte (« Voir les lieux trouvés ») ; ensuite elle reste affichée à côté du panneau. */}
+      {carteOuverte && (
+        <section className="search-map-column" aria-label="Carte et informations">
+          <div className="sr-map-wrap">
+            <ConnecteoMap
+              lieux={lieux}
+              carte={carte}
+              selected={selected}
+              demandeItineraire={demandeItineraire}
+              onSelect={(l) => setSelectedId(String(l.id))}
+            />
+          </div>
+          {selected && (
+            <PlaceInfo
+              key={selected.id}
+              lieu={selected}
+              sources={sources}
+              onItineraire={() => setDemandeItineraire((n) => n + 1)}
+              masque={infoMasquee}
+              onToggleMasque={() => setInfoMasquee((v) => !v)}
+            />
+          )}
+        </section>
+      )}
     </main>
   );
 }

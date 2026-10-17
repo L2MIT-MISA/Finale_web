@@ -5,12 +5,16 @@ import SecuriteLieu from "../ConnecteoMap/SecuriteLieu";
 import CarteLieu, { type CarteId } from "./CarteLieu";
 import { DetailsInfos, DetailsTransport } from "./DetailsLieu";
 import GaleriePhotos from "./GaleriePhotos";
+import { ChevronDownIcon, ChevronUpIcon } from "./icons";
 import { fmt1, hueDe, typeDe } from "./placeFormat";
 
 interface Props {
   lieu: Lieu;
   sources: SourceIA[];
   onItineraire: () => void;
+  /** Panneau de détails caché (l'état est géré par le parent pour rester le même d'un lieu à l'autre). */
+  masque: boolean;
+  onToggleMasque: () => void;
 }
 
 const INDISPONIBLE = (
@@ -21,7 +25,7 @@ const INDISPONIBLE = (
 // La connectivité est calculée par <ConnectiviteLieu /> à partir des pylônes
 // les plus proches (même source que la coloration de l'itinéraire).
 // Rendu avec key={lieu.id} côté parent : l'état repart à zéro à chaque lieu.
-export default function PlaceInfo({ lieu, sources, onItineraire }: Props) {
+export default function PlaceInfo({ lieu, sources, onItineraire, masque, onToggleMasque }: Props) {
   const [ouvert, setOuvert] = useState<CarteId | null>(null);
   const commun = { ouvert, onOuvrir: setOuvert, onFermer: () => setOuvert(null) };
   const { securite, transport } = lieu;
@@ -40,10 +44,29 @@ export default function PlaceInfo({ lieu, sources, onItineraire }: Props) {
         : null;
 
   return (
-    <section
-      className={`sr-info${ouvert ? " open" : ""}`}
-      aria-label="Informations sur le lieu choisi"
-    >
+    <>
+      {/* Barre de bascule : (v) pour cacher le panneau, (^) pour le réafficher. */}
+      <div className="sr-info-bar">
+        <button
+          type="button"
+          className="sr-info-toggle"
+          onClick={onToggleMasque}
+          aria-expanded={!masque}
+          aria-controls="sr-info-panel"
+          title={masque ? "Afficher les détails" : "Masquer les détails"}
+        >
+          {masque ? <ChevronUpIcon /> : <ChevronDownIcon />}
+          {masque ? "Afficher les détails" : "Masquer les détails"}
+        </button>
+      </div>
+
+      {/* `hidden` (et non un rendu conditionnel) : les cartes gardent leur état, rien n'est rechargé à la réouverture. */}
+      <section
+        id="sr-info-panel"
+        hidden={masque}
+        className={`sr-info${ouvert ? " open" : ""}`}
+        aria-label="Informations sur le lieu choisi"
+      >
       <div className="sr-cards">
         {lieu.images.length > 0 && (
           <CarteLieu
@@ -134,10 +157,10 @@ export default function PlaceInfo({ lieu, sources, onItineraire }: Props) {
           id="reseau"
           titre="Connectivité"
           resume={<ConnectiviteLieu position={{ lat, lng }} />}
-          voirPlusInactif
           {...commun}
         />
       </div>
-    </section>
+      </section>
+    </>
   );
 }

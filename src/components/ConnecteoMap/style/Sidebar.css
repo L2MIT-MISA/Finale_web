@@ -1,9 +1,3 @@
-/* ═══════════════════════════════════════════════════════════════
-   PANNEAU LATÉRAL (sidebar) : formulaire itinéraire,
-   liste des modes de transport, légende réseau.
-   Comportement tiroir : `.sidebar.replie` glisse vers la gauche.
-   ═══════════════════════════════════════════════════════════════ */
-
 /* ═════════ SIDEBAR ═════════ */
 .sidebar {
     position: absolute;
@@ -29,16 +23,13 @@
     will-change: transform, width;
 }
 
-/* ═════════ ÉTAT REPLIÉ : glisse hors écran vers la gauche ═════════
-   On laisse un petit onglet visible (44px) pour permettre de rouvrir
-   la sidebar en cliquant sur le bouton toggle. */
 .sidebar.replie {
-    transform: translateX(calc(-100% + 44px));
+    transform: translateX(calc(-100%));
     box-shadow: 0 8px 24px rgba(22, 22, 26, .12);
 }
 
-/* En mode replié, on cache le contenu interne mais on garde
-   le bouton toggle (positionné en absolute) visible. */
+/* En mode replie, on cache le contenu interne mais on garde
+   le bouton toggle (positionne en absolute) visible. */
 .sidebar.replie .sidebar-head,
 .sidebar.replie .route-form,
 .sidebar.replie .route-error,
@@ -50,12 +41,12 @@
     transition: opacity .2s ease;
 }
 
-/* ═════════ BOUTON TOGGLE (collé au bord droit de la sidebar) ═════════ */
+/* ═════════ BOUTON TOGGLE (colle au bord droit de la sidebar) ═════════ */
 .sidebar-collapse-btn {
     position: absolute;
     top: 50%;
     right: -18px;
-    /* dépasse à droite de la sidebar */
+    /* depasse a droite de la sidebar */
     transform: translateY(-50%);
     width: 36px;
     height: 36px;
@@ -118,7 +109,7 @@
     text-overflow: ellipsis;
 }
 
-/* Ancien bouton toggle dans le header : plus utilisé, on le cache
+/* Ancien bouton toggle dans le header : plus utilise, on le cache
    si jamais il traîne encore dans le JSX. */
 .sidebar-toggle {
     display: none;
@@ -142,7 +133,7 @@
     color: var(--accent-ink, #1e3fbf);
 }
 
-/* ═════════ FORMULAIRE ITINÉRAIRE ═════════ */
+/* ═════════ FORMULAIRE ITINeRAIRE ═════════ */
 .route-form {
     padding: 0 18px 16px;
     display: flex;
@@ -159,32 +150,44 @@
     gap: 10px;
 }
 
+/* Le conteneur du champ */
 .route-field {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 2px 52px 2px 16px;
+    padding: 0 52px 0 16px;
+    /* Corrige : plus de 2px en haut/bas qui laissaient apparaître un fond */
     background: var(--bg-soft, #f2f2ee);
     border: 1.5px solid transparent;
     border-radius: 12px;
     transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
 }
 
+/* On decore le conteneur entier quand l'input a l'interieur a le focus */
 .route-field:focus-within {
     border-color: var(--accent, #2f5fff);
     background: #fff;
     box-shadow: 0 0 0 4px rgba(47, 95, 255, .10);
 }
 
+/* On supprime le contour bleu natif (outline) du navigateur */
 .route-field input {
     flex: 1;
     min-width: 0;
     border: 0;
-    outline: 0;
+    outline: none !important;
+    box-shadow: none !important;
     background: transparent;
     color: var(--ink, #16161a);
     font: 500 .88rem 'Inter', sans-serif;
     padding: 13px 0;
+}
+
+/* Securite supplementaire pour Chrome/Edge/Safari */
+.route-field input:focus,
+.route-field input:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .route-field input::placeholder {
@@ -239,7 +242,7 @@
     margin-top: 2px;
 }
 
-/* ═════════ BOUTONS PARTAGÉS ═════════ */
+/* ═════════ BOUTONS PARTAGeS ═════════ */
 .btn-primary {
     flex: 1;
     display: inline-flex;
@@ -451,7 +454,7 @@
     color: var(--ink-muted, #8e8e96);
 }
 
-/* ═════════ LÉGENDE RÉSEAU (bas du panneau itinéraire) ═════════ */
+/* ═════════ LeGENDE ReSEAU (bas du panneau itineraire) ═════════ */
 .legend-reseau {
     flex-shrink: 0;
     padding: 12px 18px 8px;
@@ -499,7 +502,7 @@
         border-radius: 16px;
     }
 
-    /* En mobile, la sidebar reste en place : on ne glisse pas latéralement,
+    /* En mobile, la sidebar reste en place : on ne glisse pas lateralement,
        on cache juste le contenu pour laisser l'en-tête + le bouton toggle. */
     .sidebar.replie {
         transform: none;
@@ -533,7 +536,6 @@
     }
 }
 
-/* ═════════ Accessibilité : moins de mouvement ═════════ */
 @media (prefers-reduced-motion: reduce) {
     .sidebar {
         transition: none;

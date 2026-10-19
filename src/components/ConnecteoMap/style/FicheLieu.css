@@ -3,9 +3,11 @@
 .place-card {
     position: absolute;
     bottom: 28px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(440px, calc(100vw - 24px));
+    left: 28px;
+    /* On l'ancre à gauche */
+    transform: none;
+    /* Plus de centrage horizontal */
+    width: min(400px, calc(100vw - 56px));
     max-height: min(70vh, 640px);
     z-index: 100;
     display: flex;
@@ -18,19 +20,20 @@
     border: 1px solid var(--line);
     border-radius: 20px;
     box-shadow: var(--shadow-lg);
-    animation: monte .25s var(--ease);
+    animation: glisse .25s var(--ease);
     overflow: hidden;
 }
 
-@keyframes monte {
+@keyframes glisse {
     from {
         opacity: 0;
-        transform: translate(-50%, 12px);
+        transform: translateX(-20px);
+        /* Glisse depuis la gauche */
     }
 
     to {
         opacity: 1;
-        transform: translate(-50%, 0);
+        transform: translateX(0);
     }
 }
 
@@ -93,7 +96,6 @@
     max-height: 45vh;
     overflow-y: auto;
     padding-right: 4px;
-    /* place pour la scrollbar */
     scrollbar-width: thin;
     scrollbar-color: var(--line-strong) transparent;
 }
@@ -111,7 +113,6 @@
     background: transparent;
 }
 
-/* Si SecuriteLieu est rendu en mode "intégré", on annule son positionnement flottant */
 .place-card-securite .secu-panel,
 .place-card-securite .secu-integre {
     position: static;
@@ -124,9 +125,7 @@
     border-radius: 0;
 }
 
-/* ═════════ État replié ═════════
-   Quand ConnecteoMap passe `replie={true}` au panneau de sécurité,
-   on masque la zone de contenu et on ne garde que l'en-tête. */
+/* ═════════ État replié ═════════ */
 
 .place-card.replie .place-card-securite {
     max-height: 0;
@@ -146,13 +145,14 @@
     .place-card {
         left: 12px;
         right: 68px;
+        /* Laisse de la place aux boutons de zoom à droite */
         bottom: 20px;
         width: auto;
         max-height: 62vh;
-        transform: none;
-        animation: none;
         border-radius: 16px;
         padding: 16px;
+        animation: none;
+        /* Désactive l'anim sur mobile pour éviter les saccades */
     }
 
     .place-card-securite {

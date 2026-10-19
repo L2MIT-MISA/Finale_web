@@ -1,392 +1,742 @@
-/* =========================================
-   PAGE AUTHENTIFICATION
-   ========================================= */
+/* =====================================================
+   PAGE PRINCIPALE
+===================================================== */
 
-.auth-page {
+.pages {
   min-height: 100vh;
 
   display: flex;
-  justify-content: center;
-  align-items: center;
-
-  background: #020202;
-
-  padding: 30px 20px;
-
-  box-sizing: border-box;
-}
-
-
-/* =========================================
-   CARTE
-   ========================================= */
-
-.auth-card {
-  width: 100%;
-  max-width: 420px;
-
-  padding: 34px 40px 38px;
-
-  background: #070d0a;
-
-  border: 1px solid #303833;
-
-  border-radius: 22px;
-
-  box-shadow:
-    0 25px 60px rgba(0, 0, 0, 0.55);
-
-  box-sizing: border-box;
-}
-
-
-/* =========================================
-   LOGO
-   ========================================= */
-
-.auth-logo {
-  display: flex;
-
   flex-direction: column;
-
-  align-items: center;
-
-  margin-bottom: 38px;
 }
 
-
-.auth-logo h1 {
-  margin: 18px 0 0;
-
-  color: #f5f5f5;
-
-  font-size: 25px;
-
-  font-weight: 600;
-
-  letter-spacing: -0.5px;
-}
-
-
-/* Cercle principal */
-
-.logo-circle {
-  width: 64px;
-  height: 64px;
-
-  border: 1.5px solid #cfc7a9;
-
-  border-radius: 50%;
-
-  display: flex;
-
-  justify-content: center;
-
-  align-items: center;
-
-  box-sizing: border-box;
-}
-
-
-/* Cercle intermédiaire */
-
-.logo-circle-middle {
-  width: 39px;
-  height: 39px;
-
-  border: 1.5px solid #cfc7a9;
-
-  border-radius: 50%;
-
-  display: flex;
-
-  justify-content: center;
-
-  align-items: center;
-
-  box-sizing: border-box;
-}
-
-
-/* Cercle intérieur */
-
-.logo-circle-inner {
-  width: 17px;
-  height: 17px;
-
-  border: 1.5px solid #cfc7a9;
-
-  border-radius: 50%;
-
-  box-sizing: border-box;
-}
-
-
-/* =========================================
-   TITRE
-   ========================================= */
-
-.auth-header {
-  text-align: center;
-
-  margin-bottom: 32px;
-}
-
-
-.auth-header h2 {
-  margin: 0 0 10px;
-
-  color: #f4f4f4;
-
-  font-size: 28px;
-
-  font-weight: 600;
-}
-
-
-.auth-header p {
-  margin: 0;
-
-  color: #aaa;
-
-  font-size: 14px;
-}
-
-
-/* =========================================
-   FORMULAIRE
-   ========================================= */
-
-.auth-form {
-  display: flex;
-
-  flex-direction: column;
-
-  gap: 14px;
-}
-
-
-/* =========================================
-   CHAMPS
-   ========================================= */
-
-.input-group {
-  height: 56px;
-
-  display: flex;
-
-  align-items: center;
-
-  background: #111713;
-
-  border: 1px solid #343b37;
-
-  border-radius: 12px;
-
-  overflow: hidden;
-
-  box-sizing: border-box;
-
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-
-.input-group:focus-within {
-  border-color: #cfc7a9;
-
-  box-shadow:
-    0 0 0 2px rgba(207, 199, 169, 0.08);
-}
-
-
-/* =========================================
-   ICÔNE
-   ========================================= */
-
-.input-icon {
-  width: 54px;
-
-  min-width: 54px;
-
-  height: 100%;
-
-  display: flex;
-
-  justify-content: center;
-
-  align-items: center;
-
-  color: #929892;
-}
-
-
-.input-icon svg {
-  width: 21px;
-
-  height: 21px;
-}
-
-
-/* =========================================
-   INPUT
-   ========================================= */
-
-.input-group input {
+.auth-page {
   flex: 1;
 
+  width: 100%;
+
+  display: flex;
+
+  background-color: #f7f8fc;
+}
+
+
+/* =====================================================
+   PARTIE GAUCHE
+===================================================== */
+
+.auth-left {
+  width: 45%;
+
+  position: relative;
+
+  overflow: hidden;
+}
+
+
+/* =====================================================
+   CONTENEUR DE L'IMAGE
+===================================================== */
+
+.auth-image-container {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
   height: 100%;
 
-  border: none;
-
-  outline: none;
-
-  background: transparent;
-
-  color: #f2f2f2;
-
-  font-size: 15px;
-
-  padding: 0 15px 0 0;
-
-  box-sizing: border-box;
+  overflow: hidden;
 }
 
 
-.input-group input::placeholder {
-  color: #777d79;
+/* =====================================================
+   IMAGE
+===================================================== */
+
+.auth-background {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 100%;
+
+  /*
+       L'image remplit toute la partie gauche.
+    */
+  object-fit: cover;
+
+  /*
+       Centre l'image.
+    */
+  object-position: center center;
+
+  /*
+       Animation douce.
+    */
+  animation: imageFade 1.5s ease-in-out;
 }
 
 
-/* =========================================
-   MESSAGE
-   ========================================= */
+/* =====================================================
+   VOILE BLEU SUR L'IMAGE
+===================================================== */
 
-.auth-message {
-  color: #d5cdb2;
+.auth-overlay {
+  position: absolute;
 
-  font-size: 13px;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 100%;
+
+  background: rgba(10, 35, 70, 0.40);
+
+  z-index: 1;
+}
+
+
+/* =====================================================
+   CONTENU DE GAUCHE
+===================================================== */
+
+.auth-left-content {
+  position: absolute;
+
+  top: 75px;
+
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  width: 80%;
+
+  color: white;
 
   text-align: center;
 
-  line-height: 1.5;
+  z-index: 2;
 
-  margin: 3px 0;
+  animation: fadeIn 1s ease-out 0.3s both;
 }
 
 
-/* =========================================
-   BOUTON
-   ========================================= */
+/* =====================================================
+   LOGO
+===================================================== */
 
-.auth-button {
-  width: 100%;
+.auth-logo {
+  width: 38px;
+  height: 38px;
 
-  height: 54px;
+  margin: 0 auto 20px auto;
 
-  margin-top: 8px;
+  display: flex;
 
-  border: none;
+  align-items: center;
+  justify-content: center;
 
-  border-radius: 12px;
+  border-radius: 10px;
 
-  background: #e4dcc2;
+  background-color: #4825f5;
 
-  color: #11130f;
+  color: white;
 
-  font-size: 15px;
+  font-size: 18px;
+
+  font-weight: 700;
+}
+
+
+/* =====================================================
+   GRAND TEXTE À GAUCHE
+===================================================== */
+
+.auth-left-content h1 {
+  margin: 0 auto;
+
+  max-width: 450px;
+
+  font-size: clamp(25px, 2.5vw, 35px);
+
+  line-height: 1.3;
 
   font-weight: 700;
 
-  cursor: pointer;
-
-  transition:
-    background 0.2s ease,
-    transform 0.15s ease;
+  text-align: left;
 }
 
 
-.auth-button:hover {
-  background: #eee7d1;
+/* =====================================================
+   TEXTE "L'ÉQUIPE CONNECTÉO"
+===================================================== */
+
+.auth-footer-text {
+  margin-top: clamp(80px, 25vh, 260px);
+
+  width: 100%;
+
+  text-align: center;
 }
 
 
-.auth-button:active {
-  transform: scale(0.99);
+.auth-footer-text p {
+  margin: 0;
+
+  font-size: 14px;
+
+  line-height: 1.4;
+
+  color: rgba(255, 255, 255, 0.95);
 }
 
 
-.auth-button:disabled {
-  opacity: 0.6;
+/* =====================================================
+   PARTIE DROITE
+===================================================== */
 
-  cursor: not-allowed;
-}
+.auth-right {
+  width: 55%;
 
-
-/* =========================================
-   LIEN INSCRIPTION
-   ========================================= */
-
-.auth-switch {
   display: flex;
-
-  justify-content: center;
 
   align-items: center;
 
-  gap: 5px;
+  justify-content: center;
 
-  margin-top: 28px;
+  padding: 40px;
 
-  color: #969b97;
-
-  font-size: 13px;
+  box-sizing: border-box;
 }
 
 
-.auth-switch button {
-  border: none;
+/* =====================================================
+   CARTE DE CONNEXION
+===================================================== */
 
-  background: transparent;
+.auth-card {
+  width: 100%;
 
-  color: #d9cd9c;
+  max-width: 460px;
 
-  font-size: 13px;
+  background-color: white;
+
+  border-radius: 19px;
+
+  padding: 35px;
+
+  box-sizing: border-box;
+
+  box-shadow:
+    0 8px 25px rgba(30, 30, 50, 0.08);
+
+  animation: cardIn 0.8s ease-out 0.3s both;
+}
+
+
+/* =====================================================
+   TITRE
+===================================================== */
+
+.auth-title {
+  text-align: left;
+
+  margin-bottom: 28px;
+}
+
+
+.auth-title h2 {
+  margin: 0;
+
+  font-size: 30px;
+
+  line-height: 1.2;
+
+  color: #171827;
+
+  font-weight: 700;
+}
+
+
+.auth-title p {
+  margin: 10px 0 0;
+
+  color: #777985;
+
+  font-size: 14px;
+
+  line-height: 1.5;
+}
+
+
+/* =====================================================
+   FORMULAIRE SSO
+===================================================== */
+
+.auth-form {
+  width: 100%;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 13px;
+}
+
+
+/* =====================================================
+   BOUTONS GOOGLE / FACEBOOK / APPLE
+===================================================== */
+
+.sso-button {
+  width: 100%;
+
+  height: 52px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 12px;
+
+  border: 1px solid #e3e3e7;
+
+  border-radius: 26px;
+
+  background-color: white;
+
+  color: #25262e;
+
+  font-size: 15px;
 
   font-weight: 600;
 
   cursor: pointer;
 
-  padding: 0;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 
-.auth-switch button:hover {
-  color: #eee6c5;
+/* =====================================================
+   SURVOL DES BOUTONS
+===================================================== */
 
-  text-decoration: underline;
+.sso-button:hover {
+  background-color: #f7f7f9;
+
+  border-color: #d5d5da;
 }
 
 
-/* =========================================
-   RESPONSIVE
-   ========================================= */
+/* =====================================================
+   QUAND ON CLIQUE
+===================================================== */
 
-@media (max-width: 500px) {
+.sso-button:active {
+  transform: scale(0.98);
+}
 
-  .auth-page {
-    padding: 20px 15px;
+
+/* =====================================================
+   BOUTON DÉSACTIVÉ
+===================================================== */
+
+.sso-button:disabled {
+  opacity: 0.65;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+/* =====================================================
+   LOGOS GOOGLE / FACEBOOK / APPLE
+===================================================== */
+
+.sso-icon {
+  width: 19px;
+  height: 19px;
+
+  object-fit: contain;
+
+  flex-shrink: 0;
+}
+
+
+/* =====================================================
+   MESSAGE D'ERREUR
+===================================================== */
+
+.auth-message {
+  margin-top: 15px;
+
+  padding: 10px;
+
+  border-radius: 8px;
+
+  background-color: #fff0f0;
+
+  color: #d93030;
+
+  font-size: 12px;
+
+  text-align: center;
+}
+
+
+/*  ANIMATION IMAGE */
+
+@keyframes imageFade {
+  from {
+    opacity: 0;
   }
 
-  .auth-card {
-    padding: 30px 24px 32px;
+  to {
+    opacity: 1;
+  }
+}
 
-    border-radius: 18px;
+
+/*   ANIMATION TEXTE*/
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
   }
 
-  .auth-header h2 {
+  to {
+    opacity: 1;
+  }
+}
+
+
+/* ANIMATION CARTE*/
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0);
+  }
+}
+
+
+/*TABLETTE */
+
+@media (max-width: 900px) {
+  .auth-left {
+    width: 42%;
+  }
+
+  .auth-right {
+    width: 58%;
+
+    padding: 25px;
+  }
+
+  .auth-left-content {
+    width: 85%;
+
+    top: 55px;
+  }
+
+  .auth-left-content h1 {
     font-size: 25px;
   }
 
+  .auth-card {
+    max-width: 420px;
+
+    padding: 30px;
+  }
+
+  .auth-title h2 {
+    font-size: 27px;
+  }
+}
+
+
+/* TÉLÉPHONE */
+
+@media (max-width: 700px) {
+  .auth-page {
+    flex-direction: column;
+
+    min-height: auto;
+  }
+
+
+  /*  IMAGE\ */
+
+  .auth-left {
+    width: 100%;
+
+    height: 300px;
+
+    flex-shrink: 0;
+  }
+
+
+  .auth-background {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    object-position: center center;
+  }
+
+
+  /*  TEXTE SUR L'IMAGE */
+
+  .auth-left-content {
+    top: 50%;
+
+    left: 50%;
+
+    transform: translate(-50%, -50%);
+
+    width: 88%;
+  }
+
+
+  .auth-left-content h1 {
+    max-width: 100%;
+
+    font-size: 25px;
+
+    line-height: 1.3;
+
+    text-align: center;
+  }
+
+
+  /*  TEXTE DU BAS */
+
+  .auth-footer-text {
+    margin-top: 25px;
+  }
+
+
+  .auth-footer-text p {
+    font-size: 13px;
+
+    margin: 0;
+  }
+
+
+  /* PARTIE DROITE */
+
+  .auth-right {
+    width: 100%;
+
+    padding: 25px 20px 40px;
+
+    align-items: flex-start;
+
+    background-color: #f7f8fc;
+  }
+
+
+  /*  CARTE */
+
+  .auth-card {
+    width: 100%;
+
+    max-width: 500px;
+
+    margin: 0 auto;
+
+    padding: 30px 22px;
+
+    border-radius: 16px;
+
+    box-shadow:
+      0 5px 20px rgba(30, 30, 50, 0.07);
+  }
+
+
+  /* TITRE */
+
+  .auth-title {
+    margin-bottom: 23px;
+  }
+
+
+  .auth-title h2 {
+    font-size: 25px;
+  }
+
+
+  .auth-title p {
+    font-size: 14px;
+
+    line-height: 1.5;
+  }
+
+
+  /*  BOUTONS SSO */
+
+  .sso-button {
+    height: 50px;
+
+    font-size: 14px;
+  }
+
+
+  .sso-icon {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+
+/*  PETIT TÉLÉPHONE*/
+
+@media (max-width: 480px) {
+  .auth-left {
+    height: 270px;
+  }
+
+
+  .auth-background {
+    object-fit: cover;
+
+    object-position: center center;
+  }
+
+
+  .auth-left-content {
+    width: 90%;
+  }
+
+
+  .auth-left-content h1 {
+    font-size: 22px;
+
+    line-height: 1.3;
+  }
+
+
+  .auth-footer-text {
+    margin-top: 20px;
+  }
+
+
+  .auth-footer-text p {
+    font-size: 12px;
+  }
+
+
+  .auth-right {
+    padding: 20px 15px 30px;
+  }
+
+
+  .auth-card {
+    padding: 26px 18px;
+
+    border-radius: 14px;
+  }
+
+
+  .auth-title h2 {
+    font-size: 23px;
+  }
+
+
+  .auth-title p {
+    font-size: 13px;
+  }
+
+
+  .sso-button {
+    height: 48px;
+
+    font-size: 13px;
+  }
+
+
+  .sso-icon {
+    width: 17px;
+    height: 17px;
+  }
+}
+
+
+/* TRÈS PETIT TÉLÉPHONE*/
+
+@media (max-width: 360px) {
+  .auth-left {
+    height: 240px;
+  }
+
+
+  .auth-left-content h1 {
+    font-size: 20px;
+  }
+
+
+  .auth-footer-text p {
+    font-size: 11px;
+  }
+
+
+  .auth-card {
+    padding: 23px 15px;
+  }
+
+
+  .auth-title h2 {
+    font-size: 21px;
+  }
+
+
+  .auth-title p {
+    font-size: 12px;
+  }
+
+
+  .sso-button {
+    height: 46px;
+
+    font-size: 12px;
+  }
+
+
+  .sso-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+
+/* ACCESSIBILITÉ*/
+
+@media (prefers-reduced-motion: reduce) {
+
+  .auth-background,
+  .auth-left-content,
+  .auth-card {
+    animation: none;
+  }
+
+  .sso-button {
+    transition: none;
+  }
 }

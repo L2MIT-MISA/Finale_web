@@ -131,7 +131,7 @@ export interface Lieu {
   avis: string[];
   nbAvis: number | null;
   sourcesCitees: string[];
-  images: Image[];  securite: Securite | null;
+  images: Image[]; securite: Securite | null;
   transport: Transport | null;
   connectivite: Connectivite | null;
 }

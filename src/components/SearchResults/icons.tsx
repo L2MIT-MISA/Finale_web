@@ -18,3 +18,9 @@ export const ImageIcon = () => (
 export const LocateIcon = () => (
   <svg {...base} strokeWidth={2}><circle cx="12" cy="12" r="9" /><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z" /></svg>
 );
+export const ChevronDownIcon = () => (
+  <svg {...base} strokeWidth={2.4}><path d="m6 9 6 6 6-6" /></svg>
+);
+export const ChevronUpIcon = () => (
+  <svg {...base} strokeWidth={2.4}><path d="m18 15-6-6-6 6" /></svg>
+);

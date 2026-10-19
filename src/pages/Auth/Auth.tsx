@@ -1,364 +1,244 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect } from "react";
 import {
-  getCurrentUserProfile,
-  isUsernameAvailable,
-  signIn,
-  signUp,
-} from '../../services/auth';
+  signInWithGoogle,
+  signInWithFacebook
+} from "../../services/auth";
 
-import './Auth.css';
+import "./Auth.css";
+
+
 
 function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [message, setMessage] = useState("");
 
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmation, setConfirmation] = useState('');
-
-  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const [imageIndex, setImageIndex] = useState(0);
 
-    setMessage('');
 
-    const cleanUsername = username.trim();
+  /* =====================================================
+     IMAGES
+  ===================================================== */
 
-    // Vérification du nom d'utilisateur
-    if (!cleanUsername) {
-      setMessage("Veuillez saisir votre nom d'utilisateur.");
-      return;
-    }
+  const images = [
+    "/images/auth/login_1.jpeg",
+    "/images/auth/login_2.jpeg",
+    "/images/auth/login_3.png"
+  ];
 
-    // Vérification du mot de passe
-    if (!password) {
-      setMessage('Veuillez saisir votre mot de passe.');
-      return;
-    }
 
-    // Vérification de la confirmation
-    if (!isLogin && password !== confirmation) {
-      setMessage('Les mots de passe ne correspondent pas.');
-      return;
-    }
+  /* =====================================================
+     CHANGEMENT AUTOMATIQUE DE L'IMAGE
+  ===================================================== */
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setImageIndex((index) => {
+        return (index + 1) % images.length;
+      });
+
+    }, 10000);
+
+
+    return () => {
+      clearInterval(interval);
+    };
+
+  }, []);
+
+
+
+  /* =====================================================
+     CONNEXION GOOGLE
+  ===================================================== */
+
+  async function handleGoogleLogin() {
+    setMessage("");
 
     setLoading(true);
 
-    // ==========================
-    // CONNEXION
-    // ==========================
 
-    if (isLogin) {
-      const { error } = await signIn(
-        cleanUsername,
-        password
-      );
+    const { error } =
+      await signInWithGoogle();
 
-      if (error) {
-        setLoading(false);
 
-        setMessage(
-          "Nom d'utilisateur ou mot de passe incorrect."
-        );
-
-        return;
-      }
-
-      // Récupérer le profil et le rôle
-      const {profile,error: profileError,} = await getCurrentUserProfile();
-
+    if (error) {
       setLoading(false);
 
-    if (profileError || !profile) {
-        console.error('ERREUR PROFIL :', profileError);
-
-        setMessage(
-          'Impossible de récupérer les informations du compte.'
-        );
-
-        return;
-      }
-      
-      // Redirection selon le rôle
-      if (profile.role === 'ADMIN') {
-        window.location.hash='pages/Admin';
-      } else {
-        window.location.hash='pages/Home';
-      }
-
-      return;
+      setMessage(
+        "Impossible de se connecter avec Google."
+      );
     }
-
-
-    // ==========================
-    // INSCRIPTION
-    // ==========================
-
-    try {
-    const available =
-    await isUsernameAvailable(cleanUsername);
-
-    if (!available) {
-        setLoading(false);
-
-        setMessage(
-        "Ce nom d'utilisateur est déjà utilisé."
-        );
-
-        return;
-    }
-    } catch (error) {
-    setLoading(false);
-
-    setMessage(
-        "Impossible de vérifier le nom d'utilisateur."
-    );
-
-    return;
-    }
-
-    const { error } = await signUp(
-      cleanUsername,
-      password
-    );
-
-    setLoading(false);
-
-    
-    if (error) {
-        console.error('ERREUR SUPABASE :', error);
-
-        setMessage(
-            `Erreur : ${error.message}`
-        );
-
-        return;
-    }
-    setMessage(
-      'Compte créé avec succès. Vous pouvez maintenant vous connecter.'
-    );
-
-
-
-     // Redirection vers la page de l'utilisateur simple
-      window.location.hash='Page/User';
-
   }
 
+  /* =====================================================
+     CONNEXION FACEBOOK
+  ===================================================== */
+  async function handleFacebookLogin() {
+    setMessage("");
+    setLoading(true);
+
+    const { error } = await signInWithFacebook();
+
+    if (error) {
+      setLoading(false);
+
+      setMessage(
+        "Impossible de se connecter avec Facebook."
+      );
+    }
+  }
+
+  /* =====================================================
+     AFFICHAGE
+  ===================================================== */
+
   return (
-    <div className="auth-page">
+    <div className="pages">
 
-      <div className="auth-card">
+      <div className="auth-page">
 
-        {/* Logo */}
-        <div className="auth-logo">
-          <div className="logo-circle">
-            <div className="logo-circle-middle">
-              <div className="logo-circle-inner"></div>
-            </div>
-          </div>
 
-          <h1>Connectéo</h1>
-        </div>
+        {/* =================================================
+                   PARTIE GAUCHE
+                ================================================= */}
 
-        {/* Titre */}
-        <div className="auth-header">
+        <div className="auth-left">
 
-          <h2>
-            {isLogin ? 'Connexion': 'Créer un compte'}
-          </h2>
 
-          <p>
-            {isLogin ? 'Accédez à votre espace personnel' : 'Créez votre compte Connectéo'}
-          </p>
+          {/* IMAGE */}
 
-        </div>
+          <div className="auth-image-container">
 
-        {/* Formulaire */}
-        <form className="auth-form" onSubmit={handleSubmit}>
-
-          {/* Username */}
-          <div className="input-group">
-
-            <div className="input-icon">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 21C20 18.2386 17.3137 16 14 16H10C6.68629 16 4 18.2386 4 21"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-
-                <circle
-                  cx="12"
-                  cy="8"
-                  r="4"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                />
-              </svg>
-            </div>
-
-            <input
-              type="text"
-              value={username}
-              onChange={(event) =>
-                setUsername(event.target.value)
-              }
-              placeholder="Nom d'utilisateur"
-              autoComplete="username"
+            <img
+              src={images[imageIndex]}
+              className="auth-background"
+              alt="Illustration Connectéo"
             />
 
+            <div className="auth-overlay"></div>
+
           </div>
 
-          {/* Password */}
-          <div className="input-group">
 
-            <div className="input-icon">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect
-                  x="5"
-                  y="10"
-                  width="14"
-                  height="10"
-                  rx="2"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                />
+          {/* TEXTE */}
 
-                <path
-                  d="M8 10V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V10"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-              </svg>
+          <div className="auth-left-content">
+
+
+            <h1>
+              Trouver le bon service ne
+              <br />
+              devrait jamais être compliqué.
+            </h1>
+
+
+            <div className="auth-footer-text">
+
+              <p>
+                L'équipe Connectéo-Antananarivo
+              </p>
+
+            </div>
+          </div>
+
+        </div>
+
+
+        {/* =================================================
+                   PARTIE DROITE
+                ================================================= */}
+
+        <div className="auth-right">
+
+
+          <div className="auth-card">
+
+
+            {/* TITRE */}
+
+            <div className="auth-title">
+
+              <h2>
+                Bon retour parmi nous
+              </h2>
+
+              <p>
+                Connectez-vous à votre espace Connectéo.
+              </p>
+
             </div>
 
-            <input
-              type="password"
-              value={password}
-              onChange={(event) =>
-                setPassword(event.target.value)
-              }
-              placeholder="Mot de passe"
-              autoComplete={
-                isLogin
-                  ? 'current-password'
-                  : 'new-password'
-              }
-            />
 
-          </div>
+            {/* BOUTONS SSO */}
 
-          {/* Confirmation */}
-          {!isLogin && (
-            <div className="input-group">
+            <form className="auth-form">
 
-              <div className="input-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <rect
-                    x="5"
-                    y="10"
-                    width="14"
-                    height="10"
-                    rx="2"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  />
 
-                  <path
-                    d="M8 10V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V10"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                  />
-                </svg>
+              {/* GOOGLE */}
+
+              <button
+                type="button"
+                className="sso-button"
+                onClick={handleGoogleLogin}
+                disabled={loading}
+              >
+
+                <img
+                  src="/images/auth/google.png"
+                  alt="Google"
+                  className="sso-icon"
+                />
+
+                <span>
+                  Continuer avec Google
+                </span>
+
+              </button>
+
+
+              {/* FACEBOOK */}
+
+              <button
+                type="button"
+                className="sso-button"
+                disabled={loading}
+                onClick={handleFacebookLogin}
+              >
+
+                <img
+                  src="/images/auth/facebook.png"
+                  alt="Facebook"
+                  className="sso-icon"
+                />
+
+                <span>
+                  Continuer avec Facebook
+                </span>
+
+              </button>
+
+
+            </form>
+
+
+            {/* MESSAGE */}
+
+            {message && (
+              <div className="auth-message">
+                {message}
               </div>
-
-              <input
-                type="password"
-                value={confirmation}
-                onChange={(event) =>
-                  setConfirmation(event.target.value)
-                }
-                placeholder="Confirmer le mot de passe"
-                autoComplete="new-password"
-              />
-
-            </div>
-          )}
-
-          {/* Message */}
-          {message && (
-            <div className="auth-message">
-              {message}
-            </div>
-          )}
-
-          {/* Bouton */}
-          <button
-            className="auth-button"
-            type="submit"
-            disabled={loading}
-          >
-            {loading ? 'Chargement...': isLogin? 'Se connecter': "S'inscrire"}
-          </button>
-
-        </form>
-
-        {/* Changement connexion / inscription */}
-        <div className="auth-switch">
-
-          {isLogin ? (
-            <>
-              <span>Pas encore de compte ?</span>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsLogin(false);
-                  setMessage('');
-                }}
-              >
-                S'inscrire
-              </button>
-            </>
-          ) : (
-            <>
-              <span>Vous avez déjà un compte ?</span>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsLogin(true);
-                  setMessage('');
-                }}
-              >
-                Se connecter
-              </button>
-            </>
-          )}
+            )}
+          </div>
 
         </div>
+
 
       </div>
 
     </div>
   );
 }
+
 
 export default Auth;

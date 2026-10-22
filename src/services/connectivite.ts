@@ -1,11 +1,11 @@
+import { chargerPylonesZone } from "./pylones";
 import type { ConnectiviteIA, OperateurIA, Techno, TourIA } from "../pages/Search/searchTypes";
 import { connectiviteDe } from "./detailsLieu";
 import type { Connectivite } from "../pages/Search/searchTypes";
 
 // Connectivité d'un lieu quand l'IA ne l'a pas fournie : calculée à partir des pylônes
-// proches (GET /api/pylones/bbox du backend), puis convertie au même format que `connectivityDetails`.
+// proches (fonction Supabase pylones_bbox), puis convertie au même format que `connectivityDetails`.
 
-const API = `${import.meta.env.VITE_SEARCH_API_URL || "http://127.0.0.1:8000"}/api/pylones`;
 const RAYON_KM = 12;
 const TECHS: Techno[] = ["2G", "3G", "4G", "5G"];
 const PORTEE_M: Record<Techno, number> = { "2G": 35000, "3G": 10000, "4G": 5000, "5G": 1000 };
@@ -31,12 +31,7 @@ function haversineM(lat1: number, lng1: number, lat2: number, lng2: number) {
 }
 
 export async function chargerConnectivite(lat: number, lng: number, signal?: AbortSignal): Promise<Connectivite | null> {
-  const dLat = RAYON_KM / 111;
-  const dLng = RAYON_KM / (111 * Math.cos((lat * Math.PI) / 180));
-  const url = `${API}/bbox?minLat=${lat - dLat}&minLng=${lng - dLng}&maxLat=${lat + dLat}&maxLng=${lng + dLng}`;
-  const res = await fetch(url, { signal });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const pylones = (await res.json()) as Pylone[];
+  const pylones = await chargerPylonesZone<Pylone>(lat, lng, RAYON_KM, signal);
 
   const operators: Record<string, OperateurIA> = {};
   for (const p of pylones) {

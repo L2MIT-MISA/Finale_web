@@ -24,6 +24,8 @@ _charger_fichier_env()
 
 # --- Services externes -------------------------------------------------------------------------------------------
 URL_BASE_DE_DONNEES = os.getenv("DATABASE_URL", "")
+DELAI_DE_CONNEXION_EN_SECONDES = float(os.getenv("DELAI_CONNEXION", "8"))
+TAILLE_DU_POOL = int(os.getenv("TAILLE_POOL", "4"))
 CLE_API_GOOGLE = os.getenv("GOOGLE_API_KEY", "")
 IDENTIFIANT_MOTEUR_GOOGLE = os.getenv("GOOGLE_CX", "")
 # Recherche web : les fournisseurs sont essayés dans cet ordre, le premier qui répond est utilisé.

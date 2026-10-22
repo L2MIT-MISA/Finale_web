@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import threading
 from contextlib import contextmanager
 
 import psycopg
+from psycopg_pool import ConnectionPool
 
 import config
 from modeles import FragmentConnaissance, Lieu
@@ -28,13 +30,31 @@ class BaseIndisponible(Exception):
     pass
 
 
+_pool_de_connexions = None
+_verrou_du_pool = threading.Lock()
+
+
+def _obtenir_le_pool() -> ConnectionPool:
+    global _pool_de_connexions
+
+    with _verrou_du_pool:
+        if _pool_de_connexions is None:
+            _pool_de_connexions = ConnectionPool(
+                config.URL_BASE_DE_DONNEES, min_size=1, max_size=config.TAILLE_DU_POOL, open=False,
+                timeout=config.DELAI_DE_CONNEXION_EN_SECONDES, max_idle=120, max_lifetime=1800,
+                kwargs={"connect_timeout": int(config.DELAI_DE_CONNEXION_EN_SECONDES), "prepare_threshold": None})
+            _pool_de_connexions.open()
+
+        return(_pool_de_connexions)
+
+
 @contextmanager
 def ouvrir_curseur():
     if not config.URL_BASE_DE_DONNEES:
         raise BaseIndisponible("variable d'environnement DATABASE_URL non définie")
 
     try:
-        with psycopg.connect(config.URL_BASE_DE_DONNEES, connect_timeout=3) as connexion:
+        with _obtenir_le_pool().connection() as connexion:
             with connexion.cursor() as curseur:
                 yield curseur
     except psycopg.OperationalError as erreur:

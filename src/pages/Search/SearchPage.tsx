@@ -105,6 +105,7 @@ export default function SearchPage() {
             busy={busy}
             total={lieux.length}
             triees={triees}
+            showFound={true}
             onSend={envoyer}
             onShowList={() => { setSelectedId(null); setCarteOuverte(true); setVue("liste"); }}
           />

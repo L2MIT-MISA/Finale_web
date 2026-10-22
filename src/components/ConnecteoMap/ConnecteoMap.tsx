@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { FormEvent, KeyboardEvent, ReactElement } from 'react';
 import {
     APIProvider,
@@ -390,147 +390,6 @@ function ZoomControls({
     );
 }
 
-/* ───────── Barre de recherche ───────── */
-
-interface BarreRechercheProps {
-    lieu: Lieu | null;
-    onChoisir: (l: Lieu) => void;
-    onEffacer: () => void;
-}
-
-function BarreRecherche({ lieu, onChoisir, onEffacer }: BarreRechercheProps) {
-    const [texte, setTexte] = useState('');
-    const [resultats, setResultats] = useState<Lieu[] | null>(null);
-    const [chargement, setChargement] = useState(false);
-    const [erreur, setErreur] = useState<string | null>(null);
-    const [ouvert, setOuvert] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
-
-    // ferme la liste quand on clique ailleurs
-    useEffect(() => {
-        const fermer = (e: MouseEvent) => {
-            if (ref.current && !ref.current.contains(e.target as Node)) setOuvert(false);
-        };
-        document.addEventListener('mousedown', fermer);
-        return () => document.removeEventListener('mousedown', fermer);
-    }, []);
-
-    // si le lieu est fermé depuis la fiche, on vide la barre
-    useEffect(() => {
-        if (!lieu) {
-            setTexte('');
-            setResultats(null);
-            setErreur(null);
-            setOuvert(false);
-        }
-    }, [lieu]);
-
-    const choisir = (l: Lieu) => {
-        setTexte(l.libelle);
-        setOuvert(false);
-        onChoisir(l);
-    };
-
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const q = texte.trim();
-        if (!q || chargement) return;
-        setChargement(true);
-        setErreur(null);
-        try {
-            const r = await chercherLieux(q, 5);
-            if (r.length === 0) {
-                setResultats(null);
-                setErreur(`Aucun résultat pour « ${q} »`);
-                setOuvert(true);
-                return;
-            }
-            // on va directement au meilleur résultat ; les autres restent proposés
-            setResultats(r);
-            setOuvert(r.length > 1);
-            setTexte(r[0].libelle);
-            onChoisir(r[0]);
-        } catch (err) {
-            setErreur(err instanceof Error ? err.message : 'Erreur inconnue.');
-            setOuvert(true);
-        } finally {
-            setChargement(false);
-        }
-    };
-
-    const vider = () => {
-        setTexte('');
-        setResultats(null);
-        setErreur(null);
-        setOuvert(false);
-        onEffacer();
-    };
-
-    return (
-        <div className="search-wrap" ref={ref}>
-            <form className="search-bar" onSubmit={handleSubmit} role="search">
-                <svg className="search-icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="11" cy="11" r="7" />
-                    <path d="M20 20l-3.5-3.5" />
-                </svg>
-                <input
-                    type="text"
-                    placeholder="Rechercher un lieu, une adresse, un quartier…"
-                    value={texte}
-                    onChange={(e) => setTexte(e.target.value)}
-                    onFocus={() => (resultats || erreur) && setOuvert(true)}
-                    onKeyDown={(e: KeyboardEvent<HTMLInputElement>) =>
-                        e.key === 'Escape' && setOuvert(false)
-                    }
-                    autoComplete="off"
-                    aria-label="Rechercher un lieu"
-                />
-                {texte && (
-                    <button
-                        type="button"
-                        className="search-clear"
-                        onClick={vider}
-                        aria-label="Effacer la recherche"
-                    >
-                        ✕
-                    </button>
-                )}
-                <button
-                    type="submit"
-                    className="search-submit"
-                    disabled={chargement || !texte.trim()}
-                >
-                    {chargement ? <span className="spinner" /> : 'Chercher'}
-                </button>
-            </form>
-
-            {ouvert && (erreur || (resultats && resultats.length > 1)) && (
-                <div className="search-results">
-                    {erreur && <div className="search-empty">{erreur}</div>}
-                    {!erreur && <div className="list-label">Autres résultats</div>}
-                    {!erreur &&
-                        resultats?.map((l, i) => (
-                            <button
-                                type="button"
-                                key={`${l.lat},${l.lng},${i}`}
-                                className="search-item"
-                                onClick={() => choisir(l)}
-                            >
-                                <span className="search-item-pin">📍</span>
-                                <span className="search-item-text">
-                                    <span className="search-item-name">{l.libelle}</span>
-                                    <span className="search-item-addr">
-                                        {l.adresse || l.nom}
-                                    </span>
-                                </span>
-                            </button>
-                        ))}
-                </div>
-            )}
-        </div>
-    );
-}
-
 /* ───────── Fiche lieu ───────── */
 
 interface FicheLieuProps {
@@ -546,8 +405,7 @@ function FicheLieu({
     lieu,
     onItineraire,
     onFermer,
-    repliee = false,
-    onToggleReplie
+    repliee = false
 }: FicheLieuProps) {
     return (
         <div className={'place-card' + (repliee ? ' replie' : '')}>

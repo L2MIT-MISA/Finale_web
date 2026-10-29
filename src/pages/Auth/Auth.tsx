@@ -1,243 +1,305 @@
 import { useState, useEffect } from "react";
+
+import { useLang } from "../../i18n/LanguageContext";
+
 import {
-  signInWithGoogle,
-  signInWithFacebook
+    signInWithGoogle,
+    signInWithFacebook
 } from "../../services/auth";
 
 import "./Auth.css";
 
 
-
 function Auth() {
-  const [message, setMessage] = useState("");
+    const { lang } = useLang();
 
-  const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState("");
 
-  const [imageIndex, setImageIndex] = useState(0);
+    const [loading, setLoading] = useState(false);
 
-
-  /* =====================================================
-     IMAGES
-  ===================================================== */
-
-  const images = [
-    "/images/auth/login_1.jpeg",
-    "/images/auth/login_2.jpeg",
-    "/images/auth/login_3.png"
-  ];
+    const [imageIndex, setImageIndex] = useState(0);
 
 
-  /* =====================================================
-     CHANGEMENT AUTOMATIQUE DE L'IMAGE
-  ===================================================== */
+    /* =====================================================
+       TRADUCTIONS
+    ===================================================== */
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setImageIndex((index) => {
-        return (index + 1) % images.length;
-      });
+    const translations = {
+        FR: {
+            slogan: "Trouver le bon service ne devrait jamais être compliqué.",
+            welcome: "Bon retour parmi nous",
+            description: "Connectez-vous à votre espace Connectéo.",
+            continueGoogle: "Continuer avec Google",
+            continueFacebook: "Continuer avec Facebook",
+            googleError: "Impossible de se connecter avec Google.",
+            facebookError: "Impossible de se connecter avec Facebook."
+        },
 
-    }, 10000);
+        MG: {
+            slogan: "Tsy tokony ho sarotra ny mahita ny tolotra mety.",
+            welcome: "Faly miarahaba anao indray",
+            description: "Midira ao amin'ny Connectéo.",
+            continueGoogle: "Hanohy amin'ny Google",
+            continueFacebook: "Hanohy amin'ny Facebook",
+            googleError: "Tsy afaka miditra amin'ny alalan'ny Google.",
+            facebookError: "Tsy afaka miditra amin'ny alalan'ny Facebook."
+        },
 
-
-    return () => {
-      clearInterval(interval);
+        EN: {
+            slogan: "Finding the right service should never be complicated.",
+            welcome: "Welcome back",
+            description: "Sign in to your Connectéo account.",
+            continueGoogle: "Continue with Google",
+            continueFacebook: "Continue with Facebook",
+            googleError: "Unable to sign in with Google.",
+            facebookError: "Unable to sign in with Facebook."
+        }
     };
 
-  }, []);
+
+    /* =====================================================
+       LANGUE ACTUELLE
+    ===================================================== */
+
+    const currentLang = translations[lang] || translations.FR;
+
+
+    /* =====================================================
+       IMAGES
+    ===================================================== */
+
+    const images = [
+        "/images/auth/login_1.jpeg",
+        "/images/auth/login_2.jpeg",
+        "/images/auth/login_3.png"
+    ];
+
+
+    /* =====================================================
+       CHANGEMENT AUTOMATIQUE DE L'IMAGE
+    ===================================================== */
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setImageIndex((index) => {
+                return (index + 1) % images.length;
+            });
+
+        }, 10000);
+
+
+        return () => {
+            clearInterval(interval);
+        };
+
+    }, []);
 
 
 
-  /* =====================================================
-     CONNEXION GOOGLE
-  ===================================================== */
+    /* =====================================================
+       CONNEXION GOOGLE
+    ===================================================== */
 
-  async function handleGoogleLogin() {
-    setMessage("");
+    async function handleGoogleLogin() {
+        setMessage("");
 
-    setLoading(true);
+        setLoading(true);
 
+        try {
+            const { error } = await signInWithGoogle();
 
-    const { error } =
-      await signInWithGoogle();
+            if (error) {
+                setMessage(currentLang.googleError);
 
+                setLoading(false);
+            }
+        }
+        catch {
+            setMessage(currentLang.googleError);
 
-    if (error) {
-      setLoading(false);
-
-      setMessage(
-        "Impossible de se connecter avec Google."
-      );
+            setLoading(false);
+        }
     }
-  }
 
-  /* =====================================================
-     CONNEXION FACEBOOK
-  ===================================================== */
-  async function handleFacebookLogin() {
-    setMessage("");
-    setLoading(true);
 
-    const { error } = await signInWithFacebook();
 
-    if (error) {
-      setLoading(false);
+    /* =====================================================
+       CONNEXION FACEBOOK
+    ===================================================== */
 
-      setMessage(
-        "Impossible de se connecter avec Facebook."
-      );
+    async function handleFacebookLogin() {
+        setMessage("");
+
+        setLoading(true);
+
+        try {
+            const { error } = await signInWithFacebook();
+
+            if (error) {
+                setMessage(currentLang.facebookError);
+
+                setLoading(false);
+            }
+        }
+        catch {
+            setMessage(currentLang.facebookError);
+
+            setLoading(false);
+        }
     }
-  }
-
-  /* =====================================================
-     AFFICHAGE
-  ===================================================== */
-
-  return (
-    <div className="pages">
-
-      <div className="auth-page">
 
 
-        {/* =================================================
+
+    /* =====================================================
+       AFFICHAGE
+    ===================================================== */
+
+    return (
+        <div className="pages">
+
+            <div className="auth-page">
+
+
+                {/* =================================================
                    PARTIE GAUCHE
                 ================================================= */}
 
-        <div className="auth-left">
+                <div className="auth-left">
 
 
-          {/* IMAGE */}
+                    {/* IMAGE */}
 
-          <div className="auth-image-container">
+                    <div className="auth-image-container">
 
-            <img
-              src={images[imageIndex]}
-              className="auth-background"
-              alt="Illustration Connectéo"
-            />
+                        <img
+                            src={images[imageIndex]}
+                            className="auth-background"
+                            alt="Connectéo"
+                        />
 
-            <div className="auth-overlay"></div>
+                        <div className="auth-overlay"></div>
 
-          </div>
-
-
-          {/* TEXTE */}
-
-          <div className="auth-left-content">
+                    </div>
 
 
-            <h1>
-              Trouver le bon service ne
-              <br />
-              devrait jamais être compliqué.
-            </h1>
+                    {/* TEXTE */}
+
+                    <div className="auth-left-content">
+
+                        <h1>
+                            {currentLang.slogan}
+                        </h1>
+
+                        <div className="auth-footer-text">
+
+                        </div>
+
+                    </div>
+
+                </div>
 
 
-            <div className="auth-footer-text">
 
-              <p>
-                L'équipe Connectéo-Antananarivo
-              </p>
-
-            </div>
-          </div>
-
-        </div>
-
-
-        {/* =================================================
+                {/* =================================================
                    PARTIE DROITE
                 ================================================= */}
 
-        <div className="auth-right">
+                <div className="auth-right">
+
+                    <div className="auth-card">
 
 
-          <div className="auth-card">
+                        {/* TITRE */}
+
+                        <div className="auth-title">
+
+                            <h2>
+                                {currentLang.welcome}
+                            </h2>
+
+                            <p>
+                                {currentLang.description}
+                            </p>
+
+                        </div>
 
 
-            {/* TITRE */}
 
-            <div className="auth-title">
+                        {/* BOUTONS DE CONNEXION */}
 
-              <h2>
-                Bon retour parmi nous
-              </h2>
+                        <form className="auth-form">
 
-              <p>
-                Connectez-vous à votre espace Connectéo.
-              </p>
+
+                            {/* GOOGLE */}
+
+                            <button
+                                type="button"
+                                className="sso-button"
+                                onClick={handleGoogleLogin}
+                                disabled={loading}
+                            >
+
+                                <img
+                                    src="/images/auth/google.png"
+                                    alt="Google"
+                                    className="sso-icon"
+                                />
+
+                                <span>
+                                    {currentLang.continueGoogle}
+                                </span>
+
+                            </button>
+
+
+
+                            {/* FACEBOOK */}
+
+                            <button
+                                type="button"
+                                className="sso-button"
+                                disabled={loading}
+                                onClick={handleFacebookLogin}
+                            >
+
+                                <img
+                                    src="/images/auth/facebook.png"
+                                    alt="Facebook"
+                                    className="sso-icon"
+                                />
+
+                                <span>
+                                    {currentLang.continueFacebook}
+                                </span>
+
+                            </button>
+
+
+                        </form>
+
+
+
+                        {/* MESSAGE D'ERREUR */}
+
+                        {message && (
+                            <div
+                                className="auth-message"
+                                role="alert"
+                            >
+                                {message}
+                            </div>
+                        )}
+
+
+                    </div>
+
+                </div>
+
 
             </div>
 
-
-            {/* BOUTONS SSO */}
-
-            <form className="auth-form">
-
-
-              {/* GOOGLE */}
-
-              <button
-                type="button"
-                className="sso-button"
-                onClick={handleGoogleLogin}
-                disabled={loading}
-              >
-
-                <img
-                  src="/images/auth/google.png"
-                  alt="Google"
-                  className="sso-icon"
-                />
-
-                <span>
-                  Continuer avec Google
-                </span>
-
-              </button>
-
-
-              {/* FACEBOOK */}
-
-              <button
-                type="button"
-                className="sso-button"
-                disabled={loading}
-                onClick={handleFacebookLogin}
-              >
-
-                <img
-                  src="/images/auth/facebook.png"
-                  alt="Facebook"
-                  className="sso-icon"
-                />
-
-                <span>
-                  Continuer avec Facebook
-                </span>
-
-              </button>
-
-
-            </form>
-
-
-            {/* MESSAGE */}
-
-            {message && (
-              <div className="auth-message">
-                {message}
-              </div>
-            )}
-          </div>
-
         </div>
-
-
-      </div>
-
-    </div>
-  );
+    );
 }
 
 

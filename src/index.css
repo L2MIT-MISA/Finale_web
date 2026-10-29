@@ -64,7 +64,7 @@
 
 /* Pages qui doivent utiliser toute la largeur */
 #root:has(.dl-root),
-#root:has(.about-page) {
+#root:has(.about-page , .auth-page) {
   width: 100%;
   max-width: none;
   margin: 0;

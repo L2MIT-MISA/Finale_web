@@ -22,7 +22,9 @@
   z-index: 1;
   display: grid;
   grid-template-columns: 320px 1fr;
-  padding-top: 64px;
+
+  /* On retire le padding-top pour la carte afin qu'elle passe sous le header */
+  padding-top: 0;
 }
 
 /* Mode « chat seul » (arrivée depuis l'accueil) : pas de carte, la discussion prend tout l'écran,
@@ -31,13 +33,21 @@
 .search-map-page.chat-plein {
   --sr-chat-max: 920px;
   grid-template-columns: 1fr;
+
+  /* On laisse un peu d'air en dessous du header flottant */
   padding-top: 96px;
-  /* le header flottant fait ~75px de haut : on laisse un peu d'air en dessous */
+
+  /* Le fond avec les baobabs est appliqué UNIQUEMENT ici */
   background:
     linear-gradient(180deg, rgba(8, 12, 52, 0.6) 0%, rgba(10, 16, 70, 0.4) 40%, rgba(8, 12, 52, 0.55) 100%),
     linear-gradient(90deg, rgba(8, 12, 52, 0.55) 0%, rgba(8, 12, 52, 0.1) 60%),
     url("/images/accueil/hero.jpg") center / cover no-repeat,
     #070b2e;
+}
+
+/* Quand la carte est ouverte, on force un fond neutre pour la colonne de la carte */
+.search-map-page:not(.chat-plein) {
+  background: #f6f7f4;
 }
 
 .search-map-page.chat-plein .search-map-side {
@@ -144,6 +154,7 @@
   .search-map-page {
     display: block;
     overflow-y: auto;
+    padding-top: 0;
   }
 
   .search-map-column {
@@ -167,6 +178,7 @@
 
   .search-map-page.chat-plein {
     overflow: hidden;
+    padding-top: 96px;
   }
 
   .search-map-page.chat-plein .search-map-side {

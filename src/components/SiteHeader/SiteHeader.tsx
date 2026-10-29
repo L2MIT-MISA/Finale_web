@@ -40,8 +40,13 @@ export default function SiteHeader({ variant, page }: { variant: SiteHeaderVaria
   const [accountOpen, setAccountOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+
+  // État pour cacher l'en-tête lors du défilement
+  const [hidden, setHidden] = useState(false);
+
   const langRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
+  const lastScrollY = useRef(0);
 
   useEffect(() => {
     let mounted = true;
@@ -55,6 +60,34 @@ export default function SiteHeader({ variant, page }: { variant: SiteHeaderVaria
     return () => {
       mounted = false;
       listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  // Logique d'auto-hide du header
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      // On cache si on descend, on montre si on remonte
+      if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
+        setHidden(true);
+      } else if (currentScrollY < lastScrollY.current - 10) {
+        setHidden(false);
+      }
+      lastScrollY.current = currentScrollY;
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      // Si la souris s'approche du haut de l'écran, on réaffiche
+      if (e.clientY < 80) {
+        setHidden(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("mousemove", handleMouseMove);
     };
   }, []);
 
@@ -127,9 +160,19 @@ export default function SiteHeader({ variant, page }: { variant: SiteHeaderVaria
     return `site-header__link${active === key ? " site-header__link--active" : ""}`;
   }
 
+  // On ne cache le header que si les menus sont fermés
+  const isHidden = hidden && !langOpen && !accountOpen && !mobileOpen;
+
+  // On applique la classe "page" (fond blanc, fixe) UNIQUEMENT si on n'est pas sur l'accueil.
+  // Sur l'accueil, on garde la classe de base (transparente, dans le flux).
+  const headerClass = "site-header site-header--page";
+
   return (
     <>
-      <header className={variant === "page" ? "site-header site-header--page" : "site-header"}>
+      <header
+        className={`${headerClass} ${isHidden ? "site-header--hidden" : ""}`}
+        onMouseEnter={() => setHidden(false)}
+      >
         <a
           className="site-header__brand"
           href="#pages/Home"

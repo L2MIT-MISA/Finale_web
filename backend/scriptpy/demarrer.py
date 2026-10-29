@@ -42,4 +42,4 @@ if __name__ == "__main__":
     preparer_les_dossiers()
     supprimer_les_vieux_resultats()
     afficher_diagnostic()
-    uvicorn.run(api.app, host="0.0.0.0", port=config.PORT_API)
+    uvicorn.run(api.app, host="127.0.0.1", port=config.PORT_API)

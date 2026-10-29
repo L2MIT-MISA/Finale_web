@@ -1,0 +1,15 @@
+# Secrets : ne jamais publier
+.env
+
+# Généré ou réinstallable
+__pycache__/
+*.pyc
+wheels/
+donnees/resultats/
+donnees/csv_propres/
+
+# Gros fichiers et sauvegardes
+*.dump
+*.tgz
+*.tar
+*.xlsx

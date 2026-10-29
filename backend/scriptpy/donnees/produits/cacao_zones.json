@@ -1,0 +1,112 @@
+[
+  {
+    "Produit": "Cacao",
+    "Région": "Diana",
+    "Lieu": "Sambirano",
+    "Latitude": "-13.7167",
+    "Longitude": "48.3667",
+    "Catégorie": "Zone principale / petits producteurs",
+    "Autres": "Environ 90–95 % de la production nationale selon les sources; vallée située au nord-ouest; culture surtout en basse altitude, jusqu’à environ 400 m; principaux terroirs: sols volcaniques/alluviaux, climat humide; variétés Criollo, Trinitario, Amelonado et Forastero; cacao réputé aromatique; exportations malgaches classées Fine or Flavour par l’ICCO; chiffres nationaux indicatifs: 10 234 t en 2022 selon FAO, 11 617 t exportées en 2023; environ 33 000 producteurs au pays",
+    "Sources": "Sources: CIRAD; Expertise France; FCPF; FAO rapportée par Ecofin; étude génétique 2021"
+  },
+  {
+    "Produit": "Cacao",
+    "Région": "Diana",
+    "Lieu": "Ambanja ",
+    "Latitude": "-13.6690",
+    "Longitude": "48.4530",
+    "Catégorie": "Plantations commerciales et petits producteurs",
+    "Autres": "Exemples de superficies signalées: Théodule 100 ha, MAVA 1 700 ha, Akesson 600 ha; les superficies totales de la vallée ne sont pas connues; acteurs impliqués dans production, collecte, fermentation, séchage et export",
+    "Sources": "Source: Note sur le secteur privé dans la filière cacao et le foncier, 2023"
+  },
+  {
+    "Produit": "Cacao",
+    "Région": "Diana",
+    "Lieu": "Haut Sambirano ",
+    "Latitude": "-13.8500",
+    "Longitude": "48.5167",
+    "Catégorie": "Coopératives / cacao biologique",
+    "Autres": "UCLS indique 466 producteurs bio, 23 coopératives, 9 communes, répartis entre haut et bas Sambirano; chiffre concernant cette organisation seulement, pas toute la zone",
+    "Sources": "Source: UCLS Sambirano"
+  },
+  {
+    "Produit": "Cacao",
+    "Région": "Diana",
+    "Lieu": "Bas Sambirano ",
+    "Latitude": "-13.6500",
+    "Longitude": "48.3500",
+    "Catégorie": "Coopératives / petits producteurs",
+    "Autres": "Zone de production et de collecte le long du fleuve Sambirano",
+    "Sources": "Source: UCLS Sambirano; JICA"
+  },
+  {
+    "Produit": "Cacao",
+    "Région": "Diana",
+    "Lieu": "Nosy Be et îles voisines",
+    "Latitude": "-13.3150",
+    "Longitude": "48.2675",
+    "Catégorie": "Petites plantations / historique et production locale",
+    "Autres": "Le cacao fin est également signalé sur Nosy Be",
+    "Sources": "Source: Chocolat Madagascar; Vivachocolat"
+  },
+  {
+    "Produit": "Cacao",
+    "Région": "Sava",
+    "Lieu": "Sambava",
+    "Latitude": "14.2667",
+    "Longitude": "50.1667",
+    "Catégorie": "Zone secondaire / production limitée",
+    "Autres": "La SAVA est citée comme zone cacaoyère secondaire",
+    "Sources": "Source: sources sectorielles; à confirmer par CNC/Direction régionale"
+  },
+  {
+    "Produit": "Cacao",
+    "Région": "Diana",
+    "Lieu": "Anivorano ",
+    "Latitude": "-12.7333",
+    "Longitude": "49.2333",
+    "Catégorie": "Historique / anciennes plantations",
+    "Autres": "Première introduction et anciennes plantations signalées près d’Anivorano",
+    "Sources": "Source: Chocolat Madagascar; Vivachocolat"
+  },
+  {
+    "Produit": "Cacao",
+    "Région": "Atsinanana",
+    "Lieu": "Vohibinany (Brickaville)",
+    "Latitude": "-18.1500",
+    "Longitude": "49.0667",
+    "Catégorie": "Berceau historique / Relance",
+    "Autres": "Lieu d'introduction historique au XIXe siècle, débuts de la Chocolaterie Robert en 1937; projet actif de relance avec plus de 100 000 arbres replantés",
+    "Sources": "Sources: Historique Chocolaterie Robert; Rapports de relance sectoriels"
+  },
+  {
+    "Produit": "Cacao",
+    "Région": "Sava",
+    "Lieu": "Vallée de la Bemarivo",
+    "Latitude": "14.1667",
+    "Longitude": "50.0833",
+    "Catégorie": "Zone secondaire",
+    "Autres": "Plantations le long du fleuve Bemarivo, au nord de Sambava; culture traditionnelle en agroforesterie",
+    "Sources": "Sources: Cartographie sectorielle SAVA"
+  },
+  {
+    "Produit": "Cacao",
+    "Région": "Madagascar",
+    "Lieu": "Madagascar",
+    "Latitude": "-18.7669",
+    "Longitude": "46.8691",
+    "Catégorie": "Statistiques nationales",
+    "Autres": "Production récente : environ 8 000–17 000 t/an selon année et méthode; FAO: 10 234 t en 2022; environ 33 000 petits producteurs; moins de 1 % de l’offre mondiale; exportations moyennes proches de 13 411 t/an sur 2020–2023 selon une compilation FAO",
+    "Sources": "Sources: FAO rapportée par Ecofin; Expertise France; étude génétique 2021"
+  },
+  {
+    "Produit": "Cacao",
+    "Région": "Madagascar",
+    "Lieu": "Madagascar",
+    "Latitude": "-18.7669",
+    "Longitude": "46.8691",
+    "Catégorie": "Qualité internationale",
+    "Autres": "L’ICCO classe les exportations malgaches comme 100 % Fine or Flavour dans les sources consultées; profil aromatique recherché, associé notamment aux variétés Criollo et Trinitario, à la fermentation et au terroir du Sambirano; qualité ne signifie pas automatiquement certification biologique ou classement de chaque lot",
+    "Sources": "Sources: ICCO rapportée par FCPF/Ecofin; CIRAD; étude génétique 2021"
+  }
+]

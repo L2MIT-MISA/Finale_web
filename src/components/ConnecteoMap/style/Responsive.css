@@ -1,0 +1,82 @@
+/* Media queries globales — à importer en dernier */
+
+@media (max-width: 800px) {
+    .sidebar {
+        left: 12px;
+        right: 12px;
+        top: 12px;
+        bottom: auto;
+        width: auto;
+        max-height: 62vh;
+    }
+
+    .sidebar-toggle {
+        display: block;
+    }
+
+    .sidebar.replie .route-form,
+    .sidebar.replie .route-error,
+    .sidebar.replie .sidebar-list,
+    .sidebar.replie .legend-reseau,
+    .sidebar.replie .sidebar-foot {
+        display: none;
+    }
+
+    .sidebar.replie .sidebar-head {
+        padding-bottom: 18px;
+    }
+
+    /* Contrôles en bas à droite */
+    .zoom-controls,
+    .zoom-controls-bottom-right {
+        right: 12px;
+        bottom: 20px;
+    }
+
+    /* Bouton sécurité flottant : icône seule, à gauche des zooms */
+    .securite-toggle-btn {
+        right: 76px;
+        bottom: 20px;
+        padding: 10px 12px;
+        font-size: .78rem;
+    }
+
+    .securite-toggle-label {
+        display: none;
+    }
+
+    .search-wrap {
+        top: 12px;
+    }
+
+    .place-card {
+        left: 12px;
+        right: 68px;
+        bottom: 20px;
+        width: auto;
+        transform: none;
+        animation: none;
+    }
+}
+
+@media (max-width: 500px) {
+    .search-submit {
+        min-width: 0;
+        padding: 12px 14px;
+    }
+
+    .sidebar {
+        left: 8px;
+        right: 8px;
+        top: 8px;
+        border-radius: 16px;
+    }
+
+    .sidebar-head {
+        padding: 18px 18px 12px;
+    }
+
+    .sidebar-title {
+        font-size: 1.02rem;
+    }
+}

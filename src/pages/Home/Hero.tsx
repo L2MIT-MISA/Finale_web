@@ -9,9 +9,11 @@ function scrollToId(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function goToSearch(text: string) {
+function goToSearch(text: string, slide: number) {
   try {
     sessionStorage.setItem("connecteo-requete", text);
+    // La page de discussion reprend la photo de fond que le visiteur vient de voir sur l'accueil.
+    sessionStorage.setItem("connecteo-hero-slide", String(slide));
   } catch {
     /* stockage indisponible */
   }
@@ -61,7 +63,7 @@ export default function Hero() {
       setMessage(t.hero.emptyQuery);
       return;
     }
-    goToSearch(value);
+    goToSearch(value, slide);
   }
 
   function pickExample(step: Step) {

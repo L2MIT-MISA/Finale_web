@@ -2,16 +2,105 @@ import type { Image, Lieu, LieuIA, ReponseIA } from "../pages/Search/searchTypes
 import { connectiviteDe, securiteDe, transportDe } from "./detailsLieu";
 
 const AI_URL = import.meta.env.VITE_AI_API_URL || "http://127.0.0.1:8000";
+const SESSION_KEY = "connecteo-session-ia";
+const ACTIVE_REQUEST_KEY = "connecteo-requete-active";
+const POLL_INTERVAL_MS = 700;
+const MAX_POLL_DURATION_MS = 25_000;
+const MAX_CONSECUTIVE_ERRORS = 3;
+
+function lireSession(): string {
+  try {
+    const existante = sessionStorage.getItem(SESSION_KEY);
+    if (existante) return existante;
+    const nouvelle = `s-${identifiantAleatoire()}`;
+    sessionStorage.setItem(SESSION_KEY, nouvelle);
+    return nouvelle;
+  } catch {
+    return `s-${identifiantAleatoire()}`;
+  }
+}
+
+function sauverSession(sessionId?: string) {
+  if (!sessionId) return;
+  try {
+    sessionStorage.setItem(SESSION_KEY, sessionId);
+  } catch {
+    /* stockage indisponible */
+  }
+}
+
+function identifiantAleatoire() {
+  return typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function identifiantRequete(texte: string) {
+  try {
+    const active = JSON.parse(sessionStorage.getItem(ACTIVE_REQUEST_KEY) ?? "null") as { texte?: string; id?: string; date?: number } | null;
+    if (active?.texte === texte && active.id && Date.now() - (active.date ?? 0) < 120_000) return active.id;
+    const id = `req-${identifiantAleatoire()}`;
+    sessionStorage.setItem(ACTIVE_REQUEST_KEY, JSON.stringify({ texte, id, date: Date.now() }));
+    return id;
+  } catch {
+    return `req-${identifiantAleatoire()}`;
+  }
+}
+
+function terminerRequete() {
+  try {
+    sessionStorage.removeItem(ACTIVE_REQUEST_KEY);
+  } catch {
+    /* stockage indisponible */
+  }
+}
+
+function attendre(ms: number, signal?: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    const timer = window.setTimeout(resolve, ms);
+    signal?.addEventListener("abort", () => {
+      window.clearTimeout(timer);
+      reject(new DOMException("Requête annulée", "AbortError"));
+    }, { once: true });
+  });
+}
 
 export async function demanderIA(texte: string, signal?: AbortSignal): Promise<ReponseIA> {
-  const response = await fetch(`${AI_URL}/assistant`, {
+  const debut = Date.now();
+  const response = await fetch(`${AI_URL}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ texte }),
+    body: JSON.stringify({ message: texte, session_id: lireSession(), requete_id: identifiantRequete(texte) }),
     signal,
   });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  return (await response.json()) as ReponseIA;
+  let resultat = (await response.json()) as ReponseIA;
+  sauverSession(resultat.session_id);
+  let erreursConsecutives = 0;
+
+  while (resultat.statut === "en_cours" && Date.now() - debut < MAX_POLL_DURATION_MS) {
+    await attendre(POLL_INTERVAL_MS, signal);
+    try {
+      const suivi = await fetch(`${AI_URL}/resultats/${encodeURIComponent(resultat.id_resultat)}`, { signal });
+      if (!suivi.ok) throw new Error(`HTTP ${suivi.status}`);
+      resultat = (await suivi.json()) as ReponseIA;
+      sauverSession(resultat.session_id);
+      erreursConsecutives = 0;
+    } catch (erreur) {
+      if (signal?.aborted) throw erreur;
+      erreursConsecutives += 1;
+      if (erreursConsecutives >= MAX_CONSECUTIVE_ERRORS) throw erreur;
+    }
+  }
+
+  if (resultat.statut === "en_cours") {
+    return {
+      ...resultat,
+      statut: "delai_depasse",
+      message: "La recherche prend plus de temps que prévu. Vous pouvez préciser votre demande ou réessayer dans un instant.",
+      reponse: { ...resultat.reponse, texte: "La recherche prend plus de temps que prévu. Vous pouvez préciser votre demande ou réessayer dans un instant." },
+    };
+  }
+  terminerRequete();
+  return resultat;
 }
 
 const urlOk = (s: string) => /^(https?:\/\/|data:image\/|\/)/i.test(s);
@@ -103,7 +192,7 @@ function texteDe(v: unknown): string | null {
 }
 
 export function messagesDe(rep: ReponseIA): string[] {
-  const liste = [texteDe(rep.urgence), texteDe(rep.clarification), rep.reponse?.texte ?? null].filter(
+  const liste = [texteDe(rep.urgence), texteDe(rep.clarification), rep.message ?? rep.reponse?.texte ?? null].filter(
     (t): t is string => !!t,
   );
   if (liste.length === 0) {

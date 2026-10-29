@@ -1,9 +1,24 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { FormEvent, KeyboardEvent, ReactElement } from 'react';
-import { APIProvider, Map, AdvancedMarker, AdvancedMarkerAnchorPoint, useMap } from '@vis.gl/react-google-maps';
+import {
+    APIProvider,
+    Map,
+    AdvancedMarker,
+    AdvancedMarkerAnchorPoint,
+    useMap
+} from '@vis.gl/react-google-maps';
 import './style/Carte.css';
 import type { Lieu } from './types';
 import SecuriteLieu from './SecuriteLieu';
+import { COULEUR_TECH, chargerPylonesReseau, decouperParReseau } from './reseau';
+import type { Pylone } from './reseau';
+import './style/variables.css';
+import './style/BarreRecherche.css';
+import './style/FicheLieu.css';
+import './style/Sidebar.css';
+import './style/ZoomControls.css';
+import './style/Itineraire.css';
+import './style/Responsive.css';
 
 const CENTRE = { lat: -18.8792, lng: 47.5079 };
 
@@ -48,10 +63,6 @@ interface OsrmResponse {
     }>;
 }
 
-/*
- * Props envoyées par le composant parent (liste de résultats à gauche).
- * Elles gardent exactement le format de l'ancien ConnecteoMap.
- */
 interface LieuExterne {
     id: string | number;
     nom: string;
@@ -70,6 +81,8 @@ interface CarteProps {
     carte?: CarteInfo | null;
     selected?: LieuExterne | null;
     demandeItineraire?: number;
+    /** La fiche détaillée est affichée à côté de la carte : on n'affiche pas la petite fiche sur la carte pour le lieu choisi dans la liste. */
+    masquerFicheSelection?: boolean;
     onSelect?: (l: LieuExterne) => void;
 }
 
@@ -117,9 +130,8 @@ const MODES: Mode[] = [
     }
 ];
 
-// Interprète n'importe quel texte comme un lieu : ville, quartier, rue,
-// commerce, monument, etc. Les résultats proches d'Antananarivo sont
-// favorisés (viewbox) mais la recherche n'est pas limitée à la zone.
+/* ───────── Recherche de lieux (Nominatim) ───────── */
+
 async function chercherLieux(texte: string, limite = 5): Promise<Lieu[]> {
     const url =
         `https://nominatim.openstreetmap.org/search?format=json&addressdetails=0&limit=${limite}` +
@@ -152,7 +164,8 @@ async function geocoder(adresse: string): Promise<Lieu> {
 
 function positionActuelle(): Promise<Lieu> {
     return new Promise((resolve, reject) => {
-        const echec = () => reject(new Error('Position indisponible : indiquez un point de départ.'));
+        const echec = () =>
+            reject(new Error('Position indisponible : indiquez un point de départ.'));
         if (!navigator.geolocation) {
             echec();
             return;
@@ -173,7 +186,11 @@ function positionActuelle(): Promise<Lieu> {
     });
 }
 
-async function calculerItineraire(mode: Mode, depart: Coord, arrivee: Coord): Promise<ResultatItineraire> {
+async function calculerItineraire(
+    mode: Mode,
+    depart: Coord,
+    arrivee: Coord
+): Promise<ResultatItineraire> {
     const url = `${mode.serveur}/route/v1/driving/${depart.lng},${depart.lat};${arrivee.lng},${arrivee.lat}?overview=full&geometries=geojson`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -199,22 +216,84 @@ function formaterDuree(s: number): string {
     return `${h} h ${String(reste).padStart(2, '0')}`;
 }
 
-function Trace({ path, couleur }: { path: google.maps.LatLngLiteral[]; couleur: string }) {
+/* ───────── Trace : polyligne multicolore selon couverture réseau ───────── */
+
+interface TraceProps {
+    path: google.maps.LatLngLiteral[];
+}
+
+function Trace({ path }: TraceProps) {
     const map = useMap();
+    const [pylones, setPylones] = useState<Pylone[] | null>(null);
+
+    useEffect(() => {
+        let alive = true;
+        chargerPylonesReseau()
+            .then((data) => {
+                if (alive) setPylones(data);
+            })
+            .catch((err) => console.error('[Trace] Erreur chargement pylones :', err));
+        return () => {
+            alive = false;
+        };
+    }, []);
 
     useEffect(() => {
         if (!map || !path || path.length === 0) return undefined;
-        const contour = new google.maps.Polyline({
-            path, map, strokeColor: '#ffffff', strokeOpacity: 0.95, strokeWeight: 9, zIndex: 1
-        });
-        const ligne = new google.maps.Polyline({
-            path, map, strokeColor: couleur, strokeOpacity: 1, strokeWeight: 5, zIndex: 2
-        });
+
+        // Tant que les pylônes ne sont pas chargés : ligne grise neutre
+        if (!pylones) {
+            const contour = new google.maps.Polyline({
+                path,
+                map,
+                strokeColor: '#ffffff',
+                strokeOpacity: 0.95,
+                strokeWeight: 9,
+                zIndex: 1
+            });
+            const ligne = new google.maps.Polyline({
+                path,
+                map,
+                strokeColor: '#9ca3af',
+                strokeOpacity: 1,
+                strokeWeight: 5,
+                zIndex: 2
+            });
+            return () => {
+                contour.setMap(null);
+                ligne.setMap(null);
+            };
+        }
+
+        // Sinon : segments colorés selon la tech dominante
+        const segments = decouperParReseau(path, pylones);
+        const polylines: google.maps.Polyline[] = [];
+
+        for (const seg of segments) {
+            if (seg.points.length < 2) continue;
+            const contour = new google.maps.Polyline({
+                path: seg.points,
+                map,
+                strokeColor: '#ffffff',
+                strokeOpacity: 0.95,
+                strokeWeight: 9,
+                zIndex: 1
+            });
+            const ligne = new google.maps.Polyline({
+                path: seg.points,
+                map,
+                strokeColor: seg.couleur,
+                strokeOpacity: 1,
+                strokeWeight: 5,
+                zIndex: 2
+            });
+            polylines.push(contour, ligne);
+        }
+
         return () => {
-            contour.setMap(null);
-            ligne.setMap(null);
+            polylines.forEach((p) => p.setMap(null));
         };
-    }, [map, path, couleur]);
+    }, [map, path, pylones]);
 
     return null;
 }
@@ -236,8 +315,6 @@ function AjusterVue({ path }: { path: google.maps.LatLngLiteral[] }) {
     return null;
 }
 
-// Centre la carte sur le lieu trouvé (zoom adapté : ville = large, magasin = proche).
-// Le padding tient compte du panneau de sécurité (gauche sur PC, bas sur mobile).
 function AllerA({ lieu }: { lieu: Lieu }) {
     const map = useMap();
 
@@ -268,16 +345,38 @@ function AllerA({ lieu }: { lieu: Lieu }) {
     return null;
 }
 
-function ZoomControls({ typeCarte, onToggleType }: { typeCarte: string; onToggleType: () => void }) {
+/* ───────── Contrôles de zoom (bas droite) ───────── */
+
+function ZoomControls({
+    typeCarte,
+    onToggleType
+}: {
+    typeCarte: string;
+    onToggleType: () => void;
+}) {
     const map = useMap();
     const zoomer = (delta: number) => {
         if (!map) return;
         map.setZoom((map.getZoom() || 12) + delta);
     };
     return (
-        <div className="zoom-controls">
-            <button type="button" className="zoom-btn" onClick={() => zoomer(1)} aria-label="Zoom avant">+</button>
-            <button type="button" className="zoom-btn" onClick={() => zoomer(-1)} aria-label="Zoom arrière">−</button>
+        <div className="zoom-controls zoom-controls-bottom-right">
+            <button
+                type="button"
+                className="zoom-btn"
+                onClick={() => zoomer(1)}
+                aria-label="Zoom avant"
+            >
+                +
+            </button>
+            <button
+                type="button"
+                className="zoom-btn"
+                onClick={() => zoomer(-1)}
+                aria-label="Zoom arrière"
+            >
+                −
+            </button>
             <button
                 type="button"
                 className="zoom-btn zoom-btn-type"
@@ -291,133 +390,25 @@ function ZoomControls({ typeCarte, onToggleType }: { typeCarte: string; onToggle
     );
 }
 
-interface BarreRechercheProps {
-    lieu: Lieu | null;
-    onChoisir: (l: Lieu) => void;
-    onEffacer: () => void;
-}
-
-function BarreRecherche({ lieu, onChoisir, onEffacer }: BarreRechercheProps) {
-    const [texte, setTexte] = useState('');
-    const [resultats, setResultats] = useState<Lieu[] | null>(null);
-    const [chargement, setChargement] = useState(false);
-    const [erreur, setErreur] = useState<string | null>(null);
-    const [ouvert, setOuvert] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
-
-    // ferme la liste quand on clique ailleurs
-    useEffect(() => {
-        const fermer = (e: MouseEvent) => {
-            if (ref.current && !ref.current.contains(e.target as Node)) setOuvert(false);
-        };
-        document.addEventListener('mousedown', fermer);
-        return () => document.removeEventListener('mousedown', fermer);
-    }, []);
-
-    // si le lieu est fermé depuis la fiche, on vide la barre
-    useEffect(() => {
-        if (!lieu) {
-            setTexte('');
-            setResultats(null);
-            setErreur(null);
-            setOuvert(false);
-        }
-    }, [lieu]);
-
-    const choisir = (l: Lieu) => {
-        setTexte(l.libelle);
-        setOuvert(false);
-        onChoisir(l);
-    };
-
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const q = texte.trim();
-        if (!q || chargement) return;
-        setChargement(true);
-        setErreur(null);
-        try {
-            const r = await chercherLieux(q, 5);
-            if (r.length === 0) {
-                setResultats(null);
-                setErreur(`Aucun résultat pour « ${q} »`);
-                setOuvert(true);
-                return;
-            }
-            // on va directement au meilleur résultat ; les autres restent proposés
-            setResultats(r);
-            setOuvert(r.length > 1);
-            setTexte(r[0].libelle);
-            onChoisir(r[0]);
-        } catch (err) {
-            setErreur(err instanceof Error ? err.message : 'Erreur inconnue.');
-            setOuvert(true);
-        } finally {
-            setChargement(false);
-        }
-    };
-
-    const vider = () => {
-        setTexte('');
-        setResultats(null);
-        setErreur(null);
-        setOuvert(false);
-        onEffacer();
-    };
-
-    return (
-        <div className="search-wrap" ref={ref}>
-            <form className="search-bar" onSubmit={handleSubmit} role="search">
-                <svg className="search-icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="11" cy="11" r="7" />
-                    <path d="M20 20l-3.5-3.5" />
-                </svg>
-                <input
-                    type="text"
-                    placeholder="Rechercher un lieu, une adresse, un quartier…"
-                    value={texte}
-                    onChange={(e) => setTexte(e.target.value)}
-                    onFocus={() => (resultats || erreur) && setOuvert(true)}
-                    onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => e.key === 'Escape' && setOuvert(false)}
-                    autoComplete="off"
-                    aria-label="Rechercher un lieu"
-                />
-                {texte && (
-                    <button type="button" className="search-clear" onClick={vider} aria-label="Effacer la recherche">✕</button>
-                )}
-                <button type="submit" className="search-submit" disabled={chargement || !texte.trim()}>
-                    {chargement ? <span className="spinner" /> : 'Chercher'}
-                </button>
-            </form>
-
-            {ouvert && (erreur || (resultats && resultats.length > 1)) && (
-                <div className="search-results">
-                    {erreur && <div className="search-empty">{erreur}</div>}
-                    {!erreur && <div className="list-label">Autres résultats</div>}
-                    {!erreur && resultats?.map((l, i) => (
-                        <button type="button" key={`${l.lat},${l.lng},${i}`} className="search-item" onClick={() => choisir(l)}>
-                            <span className="search-item-pin">📍</span>
-                            <span className="search-item-text">
-                                <span className="search-item-name">{l.libelle}</span>
-                                <span className="search-item-addr">{l.adresse || l.nom}</span>
-                            </span>
-                        </button>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-}
+/* ───────── Fiche lieu ───────── */
 
 interface FicheLieuProps {
     lieu: Lieu;
     onItineraire: () => void;
     onFermer: () => void;
+    /** État replié de la fiche (contrôlé par le parent) */
+    repliee?: boolean;
+    onToggleReplie?: () => void;
 }
 
-function FicheLieu({ lieu, onItineraire, onFermer }: FicheLieuProps) {
+function FicheLieu({
+    lieu,
+    onItineraire,
+    onFermer,
+    repliee = false
+}: FicheLieuProps) {
     return (
-        <div className="place-card">
+        <div className={'place-card' + (repliee ? ' replie' : '')}>
             <div className="place-card-body">
                 <div className="place-card-title">{lieu.libelle}</div>
                 <div className="place-card-addr">{lieu.adresse || lieu.nom}</div>
@@ -425,6 +416,7 @@ function FicheLieu({ lieu, onItineraire, onFermer }: FicheLieuProps) {
                     {lieu.lat.toFixed(5)}, {lieu.lng.toFixed(5)}
                 </div>
             </div>
+
             <div className="place-card-actions">
                 <button type="button" className="btn-primary" onClick={onItineraire}>
                     <svg className="btn-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -432,26 +424,30 @@ function FicheLieu({ lieu, onItineraire, onFermer }: FicheLieuProps) {
                     </svg>
                     Itinéraire
                 </button>
-                <button type="button" className="btn-ghost" onClick={onFermer}>Fermer</button>
+
+                <button type="button" className="btn-ghost" onClick={onFermer}>
+                    Fermer
+                </button>
             </div>
 
             {/* Sécurité : le bouton « Afficher plus » est inclus dans SecuriteLieu */}
-            <div style={{ marginTop: 12, maxHeight: '45vh', overflowY: 'auto' }}>
-                <SecuriteLieu
-                    lieu={{
-                        nom: lieu.libelle,
-                        sousTitre: lieu.adresse,
-                        position: { lat: lieu.lat, lng: lieu.lng }
-                    }}
-                />
-            </div>
+            {!repliee && (
+                <div className="place-card-securite">
+                    <SecuriteLieu
+                        lieu={{
+                            nom: lieu.libelle,
+                            sousTitre: lieu.adresse,
+                            position: { lat: lieu.lat, lng: lieu.lng }
+                        }}
+                    />
+                </div>
+            )}
         </div>
     );
 }
 
-// ============================================================
-// PANNEAU ITINÉRAIRE (ouvert seulement via le bouton « Itinéraire »)
-// ============================================================
+/* ───────── Panneau itinéraire (sidebar tiroir) ───────── */
+
 interface PanneauProps {
     arriveeInitiale: string;
     onRechercher: (depart: string, arrivee: string) => void;
@@ -466,8 +462,16 @@ interface PanneauProps {
 }
 
 function Panneau({
-    arriveeInitiale, onRechercher, onEffacer, onRetour, resultats,
-    modeActif, onChoisirMode, chargement, erreur, destination
+    arriveeInitiale,
+    onRechercher,
+    onEffacer,
+    onRetour,
+    resultats,
+    modeActif,
+    onChoisirMode,
+    chargement,
+    erreur,
+    destination
 }: PanneauProps) {
     const [depart, setDepart] = useState('');
     const [arrivee, setArrivee] = useState(arriveeInitiale || '');
@@ -494,8 +498,25 @@ function Panneau({
 
     return (
         <aside className={'sidebar' + (replie ? ' replie' : '')}>
+            {/* Bouton toggle attaché au bord droit de la sidebar */}
+            <button
+                type="button"
+                className="sidebar-collapse-btn"
+                onClick={() => setReplie((v) => !v)}
+                aria-label={replie ? 'Déplier le panneau' : 'Replier le panneau'}
+                title={replie ? 'Déplier le panneau' : 'Replier le panneau'}
+            >
+                <strong style={{ fontSize: "20px" }}>{replie ? '>' : '<'}</strong>
+            </button>
+
             <div className="sidebar-head">
-                <button type="button" className="sidebar-back" onClick={onRetour} aria-label="Retour à la recherche" title="Retour">
+                <button
+                    type="button"
+                    className="sidebar-back"
+                    onClick={onRetour}
+                    aria-label="Retour à la recherche"
+                    title="Retour"
+                >
                     ←
                 </button>
                 <div className="sidebar-head-text">
@@ -506,14 +527,6 @@ function Panneau({
                             : 'Choisissez un départ et une destination'}
                     </div>
                 </div>
-                <button
-                    type="button"
-                    className="sidebar-toggle"
-                    onClick={() => setReplie((v) => !v)}
-                    aria-label={replie ? 'Déplier le panneau' : 'Replier le panneau'}
-                >
-                    {replie ? '▾' : '▴'}
-                </button>
             </div>
 
             <form className="route-form" onSubmit={handleSubmit}>
@@ -539,16 +552,28 @@ function Panneau({
                             autoComplete="off"
                         />
                     </label>
-                    <button type="button" className="swap-btn" onClick={inverser} aria-label="Inverser départ et destination" title="Inverser">
+                    <button
+                        type="button"
+                        className="swap-btn"
+                        onClick={inverser}
+                        aria-label="Inverser départ et destination"
+                        title="Inverser"
+                    >
                         ⇅
                     </button>
                 </div>
                 <div className="route-actions">
-                    <button type="submit" className="btn-primary" disabled={chargement || !arrivee.trim()}>
+                    <button
+                        type="submit"
+                        className="btn-primary"
+                        disabled={chargement || !arrivee.trim()}
+                    >
                         {chargement && <span className="spinner" />}
                         {chargement ? 'Calcul…' : 'Rechercher'}
                     </button>
-                    <button type="button" className="btn-ghost" onClick={handleEffacer}>Effacer</button>
+                    <button type="button" className="btn-ghost" onClick={handleEffacer}>
+                        Effacer
+                    </button>
                 </div>
             </form>
 
@@ -556,49 +581,96 @@ function Panneau({
 
             <div className="sidebar-list">
                 {resultats && <div className="list-label">Moyens de transport</div>}
-                {resultats && MODES.map((mode) => {
-                    const r = resultats[mode.id];
-                    if (!r) {
+                {resultats &&
+                    MODES.map((mode) => {
+                        const r = resultats[mode.id];
+                        if (!r) {
+                            return (
+                                <div key={mode.id} className="result-item disabled">
+                                    <div className="result-icon">{mode.icone}</div>
+                                    <div className="result-info">
+                                        <div className="result-name">{mode.label}</div>
+                                        <div className="result-meta">
+                                            Non disponible pour ce trajet
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        }
+                        const identique =
+                            mode.id !== MODES[0].id &&
+                            reference &&
+                            Math.abs(r.distanceM - reference.distanceM) /
+                            reference.distanceM <
+                            0.01;
+
                         return (
-                            <div key={mode.id} className="result-item disabled">
+                            <div
+                                key={mode.id}
+                                role="button"
+                                tabIndex={0}
+                                className={
+                                    'result-item' + (modeActif === mode.id ? ' active' : '')
+                                }
+                                onClick={() => onChoisirMode(mode.id)}
+                                onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        onChoisirMode(mode.id);
+                                    }
+                                }}
+                            >
                                 <div className="result-icon">{mode.icone}</div>
                                 <div className="result-info">
                                     <div className="result-name">{mode.label}</div>
-                                    <div className="result-meta">Non disponible pour ce trajet</div>
+                                    <div className="result-meta">
+                                        <span className="result-distance">
+                                            {formaterDuree(r.dureeS)}
+                                        </span>
+                                        <span>{formaterDistance(r.distanceM)}</span>
+                                        {identique && (
+                                            <span className="badge-same">
+                                                Même chemin que la voiture
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         );
-                    }
-                    const identique =
-                        mode.id !== MODES[0].id && reference &&
-                        Math.abs(r.distanceM - reference.distanceM) / reference.distanceM < 0.01;
+                    })}
+            </div>
 
-                    return (
-                        <div
-                            key={mode.id}
-                            role="button"
-                            tabIndex={0}
-                            className={'result-item' + (modeActif === mode.id ? ' active' : '')}
-                            onClick={() => onChoisirMode(mode.id)}
-                            onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    onChoisirMode(mode.id);
-                                }
-                            }}
-                        >
-                            <div className="result-icon">{mode.icone}</div>
-                            <div className="result-info">
-                                <div className="result-name">{mode.label}</div>
-                                <div className="result-meta">
-                                    <span className="result-distance">{formaterDuree(r.dureeS)}</span>
-                                    <span>{formaterDistance(r.distanceM)}</span>
-                                    {identique && <span className="badge-same">Même chemin que la voiture</span>}
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
+            {/* Légende réseau */}
+            <div className="legend-reseau">
+                <div className="legend-title">Couverture réseau</div>
+                <div className="legend-item">
+                    <span
+                        className="legend-swatch"
+                        style={{ background: COULEUR_TECH['5g'] }}
+                    />
+                    <span>5G / 4G</span>
+                </div>
+                <div className="legend-item">
+                    <span
+                        className="legend-swatch"
+                        style={{ background: COULEUR_TECH['3g'] }}
+                    />
+                    <span>3G</span>
+                </div>
+                <div className="legend-item">
+                    <span
+                        className="legend-swatch"
+                        style={{ background: COULEUR_TECH['2g'] }}
+                    />
+                    <span>2G</span>
+                </div>
+                <div className="legend-item">
+                    <span
+                        className="legend-swatch"
+                        style={{ background: COULEUR_TECH['none'] }}
+                    />
+                    <span>Aucun réseau</span>
+                </div>
             </div>
 
             <div className="sidebar-foot">Itinéraires : OpenStreetMap · OSRM</div>
@@ -606,10 +678,8 @@ function Panneau({
     );
 }
 
-// ============================================================
-// COMPOSANT PRINCIPAL
-// ============================================================
-// Cadre la carte sur les résultats de la liste quand aucun lieu n'est sélectionné
+/* ───────── Cadre la carte sur les lieux de la liste ───────── */
+
 function VueLieux({ lieux, carte }: { lieux: LieuExterne[]; carte: CarteInfo | null }) {
     const map = useMap();
 
@@ -623,7 +693,9 @@ function VueLieux({ lieux, carte }: { lieux: LieuExterne[]; carte: CarteInfo | n
         }
         const centre =
             lieux[0]?.position ??
-            (carte?.centre ? { lat: carte.centre.latitude, lng: carte.centre.longitude } : null);
+            (carte?.centre
+                ? { lat: carte.centre.latitude, lng: carte.centre.longitude }
+                : null);
         if (!centre) return;
         map.setCenter(centre);
         map.setZoom(carte?.zoom_suggere ?? 13);
@@ -632,32 +704,60 @@ function VueLieux({ lieux, carte }: { lieux: LieuExterne[]; carte: CarteInfo | n
     return null;
 }
 
-function Carte({ lieux = AUCUN_LIEU, carte = null, selected = null, demandeItineraire = 0, onSelect }: CarteProps) {
+/* ───────── Composant principal ───────── */
+
+function Carte({
+    lieux = AUCUN_LIEU,
+    carte = null,
+    selected = null,
+    demandeItineraire = 0,
+    masquerFicheSelection = false,
+    onSelect
+}: CarteProps) {
     // 'recherche' = une seule barre en haut ; 'itineraire' = panneau latéral
     const [vue, setVue] = useState<'recherche' | 'itineraire'>('recherche');
     const [lieuRecherche, setLieuRecherche] = useState<Lieu | null>(null);
     const [selectionFermee, setSelectionFermee] = useState(false);
+    const [ficheRepliee, setFicheRepliee] = useState(false);
 
     // Lieu choisi dans la liste de gauche, converti au format Lieu.
-    // On dépend de valeurs simples (pas de l'objet) pour garder une référence stable.
     const selId = selected?.id;
     const selLat = selected?.position.lat;
     const selLng = selected?.position.lng;
     const selNom = selected?.nom;
     const selSousTitre = selected?.sousTitre;
     const lieuSelectionne = useMemo<Lieu | null>(() => {
-        if (selLat === undefined || selLng === undefined || selNom === undefined || selectionFermee) return null;
-        return { lat: selLat, lng: selLng, nom: selNom, libelle: selNom, adresse: selSousTitre ?? '', bbox: null };
+        if (
+            selLat === undefined ||
+            selLng === undefined ||
+            selNom === undefined ||
+            selectionFermee
+        )
+            return null;
+        return {
+            lat: selLat,
+            lng: selLng,
+            nom: selNom,
+            libelle: selNom,
+            adresse: selSousTitre ?? '',
+            bbox: null
+        };
     }, [selLat, selLng, selNom, selSousTitre, selectionFermee]);
 
     // Un nouveau clic dans la liste remplace la recherche en cours
     useEffect(() => {
         setLieuRecherche(null);
         setSelectionFermee(false);
+        setFicheRepliee(false);
     }, [selId]);
 
     const lieu = lieuRecherche ?? lieuSelectionne;
     const setLieu = setLieuRecherche;
+    // Numéro du lieu choisi dans la liste (0 = lieu issu de la barre de recherche de la carte)
+    const numeroSelection = lieuRecherche
+        ? 0
+        : lieux.findIndex((l) => l.id === selId) + 1;
+    const ficheSurLaCarte = !(masquerFicheSelection && !lieuRecherche);
 
     const [resultats, setResultats] = useState<ResultatsParMode | null>(null);
     const [modeActif, setModeActif] = useState<ModeId | null>(null);
@@ -668,6 +768,13 @@ function Carte({ lieux = AUCUN_LIEU, carte = null, selected = null, demandeItine
 
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
 
+    // Pré-charge les pylônes réseau dès l'ouverture
+    useEffect(() => {
+        chargerPylonesReseau()
+            .then((data) => console.log(`${data.length} pylones reseau charges`))
+            .catch((err) => console.warn('Pylones reseau indisponibles :', err.message));
+    }, []);
+
     const handleRechercher = async (texteDepart: string, texteArrivee: string) => {
         setChargement(true);
         setErreur(null);
@@ -676,10 +783,11 @@ function Carte({ lieux = AUCUN_LIEU, carte = null, selected = null, demandeItine
 
         try {
             // si la destination est le lieu déjà trouvé, on évite un nouveau géocodage
-            const arrivee = lieu && texteArrivee === lieu.libelle
-                ? lieu
-                : await geocoder(texteArrivee);
-            const depart = texteDepart ? await geocoder(texteDepart) : await positionActuelle();
+            const arrivee =
+                lieu && texteArrivee === lieu.libelle ? lieu : await geocoder(texteArrivee);
+            const depart = texteDepart
+                ? await geocoder(texteDepart)
+                : await positionActuelle();
 
             const reponses = await Promise.allSettled(
                 MODES.map((m) => calculerItineraire(m, depart, arrivee))
@@ -692,7 +800,8 @@ function Carte({ lieux = AUCUN_LIEU, carte = null, selected = null, demandeItine
             });
 
             const premier = MODES.find((m) => res[m.id]);
-            if (!premier) throw new Error('Aucun itinéraire trouvé entre ces deux points.');
+            if (!premier)
+                throw new Error('Aucun itinéraire trouvé entre ces deux points.');
 
             setPoints({ depart, arrivee });
             setResultats(res);
@@ -729,7 +838,8 @@ function Carte({ lieux = AUCUN_LIEU, carte = null, selected = null, demandeItine
     }, [demandeItineraire]);
 
     const modeCourant = MODES.find((m) => m.id === modeActif);
-    const traceCourante = resultats && modeActif ? resultats[modeActif]?.trace ?? null : null;
+    const traceCourante =
+        resultats && modeActif ? resultats[modeActif]?.trace ?? null : null;
 
     return (
         <div className="carte-wrapper">
@@ -744,39 +854,44 @@ function Carte({ lieux = AUCUN_LIEU, carte = null, selected = null, demandeItine
                     style={{ width: '100%', height: '100%' }}
                 >
                     {/* Résultats de la liste (pastilles numérotées) */}
-                    {vue === 'recherche' && lieux.map((l, i) => {
-                        if (lieuSelectionne && selId === l.id) return null; // déjà affiché par le repère rouge
-                        return (
-                            <AdvancedMarker
-                                key={`lieu-${l.id}`}
-                                position={l.position}
-                                title={l.nom}
-                                onClick={() => onSelect?.(l)}
-                                anchorPoint={AdvancedMarkerAnchorPoint.CENTER}
-                            >
-                                <div
-                                    style={{
-                                        width: 30,
-                                        height: 30,
-                                        borderRadius: '50%',
-                                        background: '#2f5fff',
-                                        color: '#fff',
-                                        border: `3px ${l.approximatif ? 'dashed' : 'solid'} #fff`,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontWeight: 700,
-                                        fontSize: 13,
-                                        cursor: 'pointer',
-                                        boxShadow: '0 4px 14px rgba(47, 95, 255, .5), 0 2px 6px rgba(0, 0, 0, .4)'
-                                    }}
+                    {vue === 'recherche' &&
+                        lieux.map((l, i) => {
+                            if (lieuSelectionne && selId === l.id) return null; // déjà affiché par le repère rouge
+                            return (
+                                <AdvancedMarker
+                                    key={`lieu-${l.id}`}
+                                    position={l.position}
+                                    title={l.nom}
+                                    onClick={() => onSelect?.(l)}
+                                    anchorPoint={AdvancedMarkerAnchorPoint.CENTER}
                                 >
-                                    {i + 1}
-                                </div>
-                            </AdvancedMarker>
-                        );
-                    })}
-                    {vue === 'recherche' && !lieu && <VueLieux lieux={lieux} carte={carte} />}
+                                    <div
+                                        style={{
+                                            width: 36,
+                                            height: 36,
+                                            borderRadius: '50%',
+                                            background: '#fff',
+                                            color: '#15171a',
+                                            border: `2px ${l.approximatif ? 'dashed' : 'solid'
+                                                } #2f5bff`,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontWeight: 700,
+                                            fontSize: 14,
+                                            cursor: 'pointer',
+                                            opacity: lieuSelectionne ? 0.7 : 1,
+                                            boxShadow: '0 4px 10px rgba(21, 23, 26, .25)'
+                                        }}
+                                    >
+                                        {i + 1}
+                                    </div>
+                                </AdvancedMarker>
+                            );
+                        })}
+                    {vue === 'recherche' && !lieu && (
+                        <VueLieux lieux={lieux} carte={carte} />
+                    )}
 
                     {/* Lieu sélectionné ou trouvé par la recherche */}
                     {vue === 'recherche' && lieu && (
@@ -786,7 +901,29 @@ function Carte({ lieux = AUCUN_LIEU, carte = null, selected = null, demandeItine
                                 title={lieu.libelle}
                                 anchorPoint={AdvancedMarkerAnchorPoint.CENTER}
                             >
-                                <div className="marker-pin marker-end">📍</div>
+                                {numeroSelection > 0 ? (
+                                    <div
+                                        style={{
+                                            width: 48,
+                                            height: 48,
+                                            borderRadius: '50%',
+                                            background: '#2f5bff',
+                                            color: '#fff',
+                                            border: '3px solid #fff',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontWeight: 700,
+                                            fontSize: 17,
+                                            boxShadow:
+                                                '0 0 0 3px #2f5bff, 0 8px 18px rgba(21, 23, 26, .35)'
+                                        }}
+                                    >
+                                        {numeroSelection}
+                                    </div>
+                                ) : (
+                                    <div className="marker-pin marker-end">📍</div>
+                                )}
                             </AdvancedMarker>
                             <AllerA lieu={lieu} />
                         </>
@@ -796,14 +933,20 @@ function Carte({ lieux = AUCUN_LIEU, carte = null, selected = null, demandeItine
                     {vue === 'itineraire' && points && (
                         <>
                             <AdvancedMarker
-                                position={{ lat: points.depart.lat, lng: points.depart.lng }}
+                                position={{
+                                    lat: points.depart.lat,
+                                    lng: points.depart.lng
+                                }}
                                 title="Départ"
                                 anchorPoint={AdvancedMarkerAnchorPoint.CENTER}
                             >
                                 <div className="marker-pin marker-start" />
                             </AdvancedMarker>
                             <AdvancedMarker
-                                position={{ lat: points.arrivee.lat, lng: points.arrivee.lng }}
+                                position={{
+                                    lat: points.arrivee.lat,
+                                    lng: points.arrivee.lng
+                                }}
                                 title="Destination"
                                 anchorPoint={AdvancedMarkerAnchorPoint.CENTER}
                             >
@@ -812,33 +955,36 @@ function Carte({ lieux = AUCUN_LIEU, carte = null, selected = null, demandeItine
                         </>
                     )}
 
+                    {/* Polyligne multicolore selon couverture réseau */}
                     {vue === 'itineraire' && traceCourante && modeCourant && (
                         <>
-                            <Trace path={traceCourante} couleur={modeCourant.couleur} />
+                            <Trace path={traceCourante} />
                             <AjusterVue path={traceCourante} />
                         </>
                     )}
                 </Map>
 
+                {/* Contrôles de zoom (bas droite) */}
                 <ZoomControls
                     typeCarte={typeCarte}
-                    onToggleType={() => setTypeCarte((t) => (t === 'hybrid' ? 'roadmap' : 'hybrid'))}
+                    onToggleType={() =>
+                        setTypeCarte((t) => (t === 'hybrid' ? 'roadmap' : 'hybrid'))
+                    }
                 />
             </APIProvider>
 
-            {vue === 'recherche' && (
-                <>
-                    <BarreRecherche lieu={lieu} onChoisir={setLieu} onEffacer={handleFermerLieu} />
-                    {lieu && (
-                        <FicheLieu
-                            lieu={lieu}
-                            onItineraire={() => setVue('itineraire')}
-                            onFermer={handleFermerLieu}
-                        />
-                    )}
-                </>
+            {/* Fiche lieu (repliable) */}
+            {vue === 'recherche' && lieu && ficheSurLaCarte && (
+                <FicheLieu
+                    lieu={lieu}
+                    onItineraire={() => setVue('itineraire')}
+                    onFermer={handleFermerLieu}
+                    repliee={ficheRepliee}
+                    onToggleReplie={() => setFicheRepliee((v) => !v)}
+                />
             )}
 
+            {/* Panneau itinéraire (sidebar tiroir) */}
             {vue === 'itineraire' && (
                 <Panneau
                     arriveeInitiale={lieu ? lieu.libelle : ''}

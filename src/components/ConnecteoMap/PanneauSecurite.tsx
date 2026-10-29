@@ -7,12 +7,15 @@ import './style/PanneauSecurite.css';
 /* ============================================================
    PanneauSecurite : AFFICHAGE uniquement.
    Props :
-     lieu          Lieu (requis)
-     securityData  objet au format de mockSecurityData.ts     (optionnel)
-     chargement    boolean (optionnel)
-     erreur        string  (optionnel)
-     onRetour      () => void  (optionnel)
-     onItineraire  () => void  (optionnel, bouton visible sur mobile)
+     lieu            Lieu (requis)
+     securityData    objet au format de mockSecurityData.ts     (optionnel)
+     chargement      boolean (optionnel)
+     erreur          string  (optionnel)
+     onRetour        () => void  (optionnel)
+     onItineraire    () => void  (optionnel)
+     integre         boolean (optionnel)
+     replie          boolean (optionnel) — contrôle externe du repli
+     onToggleReplie  () => void (optionnel) — callback de toggle
    ============================================================ */
 
 /* ───────── Utilitaires ───────── */
@@ -160,7 +163,9 @@ const ICONS = {
         </>
     ),
     back: <path d="M19 12H5M11 6l-6 6 6 6" />,
-    arrow: <path d="M5 12h14M13 6l6 6-6 6" />
+    arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
+    chevronDown: <path d="M6 9l6 6 6-6" />,
+    chevronUp: <path d="M6 15l6-6 6 6" />
 } satisfies Record<string, ReactElement>;
 
 type IconName = keyof typeof ICONS;
@@ -304,6 +309,10 @@ interface PanneauSecuriteProps {
     onItineraire?: () => void;
     /** true = affiché dans une section existante (sans position flottante ni en-tête) */
     integre?: boolean;
+    /** Contrôle externe du repli (optionnel) */
+    replie?: boolean;
+    /** Callback de toggle (optionnel) */
+    onToggleReplie?: () => void;
 }
 
 function PanneauSecurite({
@@ -313,15 +322,24 @@ function PanneauSecurite({
     erreur = null,
     onRetour,
     onItineraire,
-    integre = false
+    integre = false,
+    replie: replieControle,
+    onToggleReplie
 }: PanneauSecuriteProps) {
-    const [replie, setReplie] = useState(false);
+    const [replieInterne, setReplieInterne] = useState(false);
 
-    // un nouveau lieu redéploie le panneau (utile sur mobile)
+    // Mode contrôlé si le parent fournit `replie`
+    const replie = replieControle ?? replieInterne;
+    const toggleReplie = () => {
+        if (onToggleReplie) onToggleReplie();
+        else setReplieInterne((v) => !v);
+    };
+
+    // un nouveau lieu redéploie le panneau (uniquement en mode non contrôlé)
     const cle = lieu ? `${lieu.lat},${lieu.lng}` : '';
     useEffect(() => {
-        setReplie(false);
-    }, [cle]);
+        if (replieControle === undefined) setReplieInterne(false);
+    }, [cle, replieControle]);
 
     if (!lieu) return null;
 
@@ -335,10 +353,19 @@ function PanneauSecurite({
     const adresse = lieu.adresse || lieu.nom;
 
     return (
-        <aside className={'secu-panel' + (integre ? ' secu-integre' : '') + (replie ? ' replie' : '')} aria-label={`Sécurité de ${lieu.libelle}`}>
+        <aside
+            className={'secu-panel' + (integre ? ' secu-integre' : '') + (replie ? ' replie' : '')}
+            aria-label={`Sécurité de ${lieu.libelle}`}
+        >
             <header className="secu-head">
                 {onRetour && (
-                    <button type="button" className="secu-btn-round" onClick={onRetour} aria-label="Fermer le panneau de sécurité" title="Retour">
+                    <button
+                        type="button"
+                        className="secu-btn-round"
+                        onClick={onRetour}
+                        aria-label="Fermer le panneau de sécurité"
+                        title="Retour"
+                    >
                         <Icon name="back" />
                     </button>
                 )}
@@ -353,11 +380,11 @@ function PanneauSecurite({
                 <button
                     type="button"
                     className="secu-btn-round secu-toggle"
-                    onClick={() => setReplie((v) => !v)}
+                    onClick={toggleReplie}
                     aria-label={replie ? 'Déplier le panneau' : 'Replier le panneau'}
                     aria-expanded={!replie}
                 >
-                    {replie ? '▴' : '▾'}
+                    <Icon name={replie ? 'chevronUp' : 'chevronDown'} className="secu-icon" />
                 </button>
             </header>
 
@@ -372,7 +399,9 @@ function PanneauSecurite({
                         <div className={`secu-score tone-${tone.key}`}>
                             <ScoreRing score={data.score} tone={tone} />
                             <div className="secu-score-label">{tone.label}</div>
-                            <p className="secu-score-note">Indice calculé à partir des infrastructures et services disponibles.</p>
+                            <p className="secu-score-note">
+                                Indice calculé à partir des infrastructures et services disponibles.
+                            </p>
                         </div>
 
                         {/* ─── 1. Services de sécurité ─── */}
@@ -410,7 +439,11 @@ function PanneauSecurite({
                                 <ServiceCard
                                     icon="emergency"
                                     title="Urgences"
-                                    main={emergency.availability ? `Disponibilité : ${emergency.availability}` : "Niveau d'accès"}
+                                    main={
+                                        emergency.availability
+                                            ? `Disponibilité : ${emergency.availability}`
+                                            : "Niveau d'accès"
+                                    }
                                     aside={<LevelPill level={emergency.access} />}
                                 />
                             )}
@@ -422,7 +455,11 @@ function PanneauSecurite({
                                         ? `${pharmacies.count} ${pluralize(pharmacies.count, 'pharmacie proche', 'pharmacies proches')}`
                                         : 'Donnée indisponible'
                                 }
-                                sub={isNum(pharmacies?.nearestDistance) ? `Plus proche : ${formatDistance(pharmacies.nearestDistance)}` : null}
+                                sub={
+                                    isNum(pharmacies?.nearestDistance)
+                                        ? `Plus proche : ${formatDistance(pharmacies.nearestDistance)}`
+                                        : null
+                                }
                             />
                         </Section>
 
@@ -445,9 +482,13 @@ function PanneauSecurite({
                                 )}
                                 <div className="secu-rows">
                                     <Row label="Police la plus proche">{formatDistance(police?.nearestDistance)}</Row>
-                                    <Row label="Hôpital le plus proche">{formatDistance(hospitals?.nearestDistance)}</Row>
+                                    <Row label="Hôpital le plus proche">
+                                        {formatDistance(hospitals?.nearestDistance)}
+                                    </Row>
                                     {isNum(accessibility?.emergencyTime) && (
-                                        <Row label="Intervention estimée">{`${Math.round(accessibility.emergencyTime)} min`}</Row>
+                                        <Row label="Intervention estimée">
+                                            {`${Math.round(accessibility.emergencyTime)} min`}
+                                        </Row>
                                     )}
                                 </div>
                             </div>
@@ -458,7 +499,8 @@ function PanneauSecurite({
                             <Section title="Résilience">
                                 <div className="secu-block">
                                     <p className="secu-text">
-                                        <Icon name="refresh" /> Capacité de la zone à rester fonctionnelle si un service tombe en panne.
+                                        <Icon name="refresh" /> Capacité de la zone à rester fonctionnelle si un
+                                        service tombe en panne.
                                     </p>
                                     <div className="secu-rows">
                                         <Row label="Connectivité redondante">
@@ -479,14 +521,15 @@ function PanneauSecurite({
             </div>
 
             <footer className="secu-foot">
-                {!enAttente && (estDemo ? (
-                    <span className="secu-demo">
-                        <span className="secu-demo-dot" />
-                        Données de démonstration
-                    </span>
-                ) : (
-                    <span>Indice informatif, non scientifique</span>
-                ))}
+                {!enAttente &&
+                    (estDemo ? (
+                        <span className="secu-demo">
+                            <span className="secu-demo-dot" />
+                            Données de démonstration
+                        </span>
+                    ) : (
+                        <span>Indice informatif, non scientifique</span>
+                    ))}
                 {onItineraire && (
                     <button type="button" className="secu-btn-primary" onClick={onItineraire}>
                         <Icon name="arrow" className="secu-icon" />

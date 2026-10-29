@@ -1,6 +1,6 @@
-// Couverture réseau d'un lieu, calculée côté front à partir des pylônes (GET /api/pylones/bbox).
+import { chargerPylonesZone } from "../../services/pylones";
+// Couverture réseau d'un lieu, calculée côté front à partir des pylônes (fonction Supabase pylones_bbox).
 
-const API = `${import.meta.env.VITE_SEARCH_API_URL || "http://127.0.0.1:8000"}/api/pylones`;
 const RAYON_KM = 12;
 const TECHS = ["2G", "3G", "4G", "5G"] as const;
 const PORTEE_M: Record<(typeof TECHS)[number], number> = { "2G": 35000, "3G": 10000, "4G": 5000, "5G": 1000 };
@@ -52,12 +52,7 @@ function haversineM(lat1: number, lng1: number, lat2: number, lng2: number) {
 }
 
 export async function chargerCouverture(lat: number, lng: number, signal?: AbortSignal): Promise<Couverture> {
-  const dLat = RAYON_KM / 111;
-  const dLng = RAYON_KM / (111 * Math.cos((lat * Math.PI) / 180));
-  const url = `${API}/bbox?minLat=${lat - dLat}&minLng=${lng - dLng}&maxLat=${lat + dLat}&maxLng=${lng + dLng}`;
-  const res = await fetch(url, { signal });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const pylones = (await res.json()) as Pylone[];
+  const pylones = await chargerPylonesZone<Pylone>(lat, lng, RAYON_KM, signal);
 
   const operateurs: CouvertureOperateur[] = OPERATEURS.map((nom) => ({
     nom,

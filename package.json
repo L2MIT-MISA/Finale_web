@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "backend": "backend/search/.venv/bin/uvicorn main:app --app-dir backend/search --host 0.0.0.0 --port 8000 --reload"
+    "backend:install": "python3 -m venv backend/scriptpy/.venv && backend/scriptpy/.venv/bin/pip install -r backend/scriptpy/requirements.txt",
+    "backend": "backend/scriptpy/.venv/bin/python backend/scriptpy/demarrer.py"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.109.0",

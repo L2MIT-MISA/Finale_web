@@ -1,0 +1,40 @@
+/* Variables globales, reset, wrapper carte */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --bg-soft: #f2f2ee;
+    --ink: #16161a;
+    --ink-soft: #56565e;
+    --ink-muted: #8e8e96;
+    --accent: #2f5fff;
+    --accent-soft: #eef2ff;
+    --accent-ink: #1e3fbf;
+    --line: #e8e8ec;
+    --line-strong: #d6d6dc;
+    --danger: #e5484d;
+    --shadow-lg: 0 12px 40px rgba(22, 22, 26, .10), 0 30px 80px rgba(22, 22, 26, .12);
+    --ease: cubic-bezier(.2, .8, .2, 1);
+}
+
+/* Reset limité à la carte */
+.carte-wrapper,
+.carte-wrapper *,
+.carte-wrapper *::before,
+.carte-wrapper *::after {
+    box-sizing: border-box;
+}
+
+.carte-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    /* évite un effondrement si le parent n'a pas de hauteur */
+    /* ⚠️ Pas de overflow: hidden — laisse les contrôles flottants visibles */
+    background: #1a1a1a;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+}

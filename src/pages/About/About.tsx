@@ -2,11 +2,7 @@ import { useEffect, useState } from "react";
 import "./About.css";
 import heroImage from "../assets/hero.jpg";
 import missionImage from "../assets/mission.jpg";
-
-interface NavigationLink {
-  label: string;
-  isActive: boolean;
-}
+import { supabase } from "../../services/supabase";
 
 interface ValueCard {
   icon: string;
@@ -18,12 +14,6 @@ interface FooterColumn {
   title: string;
   links: string[];
 }
-
-const navigationLinks: NavigationLink[] = [
-  { label: "Accueil", isActive: false },
-  { label: "Télécharger", isActive: false },
-  { label: "À propos", isActive: true },
-];
 
 const valueCards: ValueCard[] = [
   {
@@ -69,15 +59,12 @@ function About() {
   const [totalUsers, setTotalUsers] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/statistics")
-      .then((response) => {
-        if (!response.ok) {
+    Promise.resolve(supabase.rpc("statistiques_about"))
+      .then(({ data, error }) => {
+        if (error) {
           throw new Error("Impossible de récupérer les statistiques");
         }
 
-        return response.json();
-      })
-      .then((data) => {
         setActiveTelecomSites(data.activeTelecomSites);
         setTotalUsers(data.totalUsers);
       })

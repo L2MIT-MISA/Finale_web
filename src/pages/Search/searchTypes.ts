@@ -8,12 +8,20 @@ export interface Coordonnees {
 
 export type ImageIA = string | { url: string; legende?: string | null };
 
+// Photo d'une réponse générale (« Connais-tu… ? ») : légende = crédit, page = page d'origine
+export interface ImageReponseIA {
+  url: string;
+  legende?: string | null;
+  page?: string | null;
+}
+
 export interface SourceIA {
   reference: string;
   origine?: string | null;
   titre?: string | null;
   url?: string | null;
   fichier?: string | null;
+  extrait?: string | null;
 }
 
 export type Techno = "2G" | "3G" | "4G" | "5G";
@@ -56,6 +64,7 @@ export interface LieuIA {
   source?: string | null;
   image_source?: string | null;
   images?: ImageIA[] | null;
+  images_details?: { url: string; legende?: string | null }[] | null;
   securite?: SecuriteIA | null;
   transport?: TransportIA | null;
   connectivite?: ConnectiviteIA | null;
@@ -88,6 +97,7 @@ export interface ReponseIA {
   lieux_approximative?: LieuIA[];
   carte?: CarteIA | null;
   sources?: SourceIA[];
+  images?: ImageReponseIA[];
   clarification?: unknown;
   urgence?: unknown;
   avertissements?: string[];

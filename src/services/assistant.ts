@@ -1,11 +1,11 @@
-import type { Image, Lieu, LieuIA, ReponseIA } from "../pages/Search/searchTypes";
+import type { Image, ImageReponseIA, Lieu, LieuIA, ReponseIA, SourceIA } from "../pages/Search/searchTypes";
 import { connectiviteDe, securiteDe, transportDe } from "./detailsLieu";
 
 const AI_URL = import.meta.env.VITE_AI_API_URL || "http://127.0.0.1:8000";
 const SESSION_KEY = "connecteo-session-ia";
 const ACTIVE_REQUEST_KEY = "connecteo-requete-active";
 const POLL_INTERVAL_MS = 700;
-const MAX_POLL_DURATION_MS = 25_000;
+const MAX_POLL_DURATION_MS = 60_000;
 const MAX_CONSECUTIVE_ERRORS = 3;
 
 function lireSession(): string {
@@ -126,7 +126,8 @@ function normaliser(l: LieuIA, index: number, approximatif: boolean): Lieu | nul
   const c = l.coordonnees;
   if (!c || !Number.isFinite(c.latitude) || !Number.isFinite(c.longitude)) return null;
 
-  const images: Image[] = (l.images ?? [])
+  // images_details porte les crédits (auteur, licence) : prioritaire sur la simple liste d'URL
+  const images: Image[] = (l.images_details?.length ? l.images_details : l.images ?? [])
     .map((i) => (typeof i === "string" ? { url: i, legende: null } : { url: i.url, legende: i.legende ?? null }))
     .filter((i) => typeof i.url === "string" && urlOk(i.url));
   if (l.image_source && urlOk(l.image_source) && !images.some((i) => i.url === l.image_source)) {
@@ -178,6 +179,18 @@ export function lieuxDe(rep: ReponseIA): Lieu[] {
   ajouter(principaux, false);
   ajouter(rep.lieux_approximative ?? [], true);
   return sortie;
+}
+
+// Sources web d'une réponse générale (« Connais-tu… ? ») : affichées sous le message, liens http(s) seulement
+export function sourcesWebDe(rep: ReponseIA): SourceIA[] {
+  return (rep.sources ?? []).filter((s) => s.origine === "web" && typeof s.url === "string" && /^https?:\/\//i.test(s.url));
+}
+
+// Photos d'une réponse générale, comme une recherche Google : URL et page d'origine en http(s) seulement
+export function imagesDe(rep: ReponseIA): ImageReponseIA[] {
+  return (rep.images ?? [])
+    .filter((i) => typeof i.url === "string" && /^https?:\/\//i.test(i.url))
+    .map((i) => ({ url: i.url, legende: i.legende ?? null, page: i.page && /^https?:\/\//i.test(i.page) ? i.page : null }));
 }
 
 // clarification / urgence / erreur : formes non figées, on cherche un texte lisible

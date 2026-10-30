@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import type { ImageReponseIA, SourceIA } from "../../pages/Search/searchTypes";
 import { SendIcon, SparkIcon } from "./icons";
 import { plur } from "./placeFormat";
 
@@ -7,6 +8,41 @@ export interface Message {
   from: "user" | "ai";
   text: string;
   suggestions?: string[];
+  sources?: SourceIA[];
+  images?: ImageReponseIA[];
+}
+
+function PhotosReponse({ images }: { images: ImageReponseIA[] }) {
+  const [cassees, setCassees] = useState<string[]>([]);
+  const visibles = images.filter((image) => !cassees.includes(image.url));
+
+  if (visibles.length === 0) return null;
+
+  return (
+    <div className="sr-photos-reponse">
+      {visibles.map((image) => {
+        const vignette = (
+          <img src={image.url} alt={image.legende ?? ""} loading="lazy"
+               onError={() => setCassees((c) => [...c, image.url])} />
+        );
+        return image.page ? (
+          <a key={image.url} href={image.page} target="_blank" rel="noopener noreferrer nofollow" title={image.legende ?? undefined}>
+            {vignette}
+          </a>
+        ) : (
+          <span key={image.url} title={image.legende ?? undefined}>{vignette}</span>
+        );
+      })}
+    </div>
+  );
+}
+
+function domaine(url: string) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
 }
 
 interface Props {
@@ -52,7 +88,20 @@ export default function ChatPanel({ messages, busy, total, triees, showFound, pl
       <div className="sr-chat-body" ref={corps} aria-live="polite">
         {messages.map((m) => (
           <div key={m.id} className={`sr-message ${m.from}`}>
+            {m.from === "ai" && m.images && m.images.length > 0 && <PhotosReponse images={m.images} />}
             <div className={`sr-bubble ${m.from}`}>{m.text}</div>
+            {m.from === "ai" && m.sources && m.sources.length > 0 && (
+              <ol className="sr-sources" aria-label="Sources">
+                {m.sources.map((source) => (
+                  <li key={source.url}>
+                    <a href={source.url ?? undefined} target="_blank" rel="noopener noreferrer nofollow">
+                      <span className="sr-source-titre">{source.titre || domaine(source.url ?? "")}</span>
+                      <span className="sr-source-domaine">{domaine(source.url ?? "")}</span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            )}
             {m.from === "ai" && m.suggestions && m.suggestions.length > 0 && (
               <div className="sr-suggestions">
                 {m.suggestions.map((suggestion) => (

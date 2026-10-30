@@ -1,6 +1,10 @@
 """Tests de l'assistant : python -m unittest discover -s tests -v   (aucun service externe requis)."""
 from __future__ import annotations
 
+import os
+
+os.environ["CONNECTEO_SANS_FICHIER_ENV"] = "1"          # jamais le .env réel (base, clés) pendant les tests
+
 import json
 import shutil
 import tempfile
@@ -19,9 +23,9 @@ import conversation
 import poi_osm
 import recherche
 import recherche_images
+import recherche_web
 import resultat_json
 from modeles import AnalyseTour, Lieu
-from tests.fake_llm import FauxServeurIA
 
 
 def lieu_osm(nom: str, categorie: str = "Restaurant", latitude=-18.91, longitude=47.52) -> Lieu:
@@ -43,41 +47,71 @@ def reponse_pipeline(lieux: list[dict], statut="termine") -> dict:
             "reponse": {"source_principale": "referentiel"}, "lieux": lieux, "sources": [], "avertissements": []}
 
 
+class FauxModeleScenario:
+    """Modèle LangChain simulé pour les sorties structurées : aucun appel réseau."""
+    def __init__(self, gestionnaire):
+        self.gestionnaire = gestionnaire
+        self.appels: list[str] = []
+
+    def with_structured_output(self, classe, method, **options):
+        faux = self
+
+        class Structure:
+            def invoke(self, messages):
+                systeme = next((message.content for message in messages if message.type == "system"), "")
+                faux.appels.append(messages[-1].content)
+                resultat = faux.gestionnaire(systeme, messages[-1].content)
+
+                if isinstance(resultat, Exception):
+                    raise resultat
+
+                return classe.model_validate_json(resultat)
+
+        return Structure()
+
+
 class Base(unittest.TestCase):
     def setUp(self):
         self.dossier = Path(tempfile.mkdtemp())
         self.sauvegarde = {nom: getattr(config, nom) for nom in (
-            "DOSSIER_RESULTATS", "AGENT_API_ACTIVE", "AGENT_API_CLE", "AGENT_API_URL", "AGENT_API_MODELE", "AGENT_LOCAL_ACTIF",
-            "URL_OLLAMA", "IMAGES_ACTIVES", "POI_ACTIF", "LIMITE_REQUETES_PAR_MINUTE")}
+            "DOSSIER_RESULTATS", "AGENT_FOURNISSEUR", "AGENT_API_CLE", "MODELE_REDACTION", "AGENT_SECOURS_FOURNISSEUR",
+            "AGENT_SECOURS_CLE", "AGENT_SECOURS_MODELE", "AGENT_APPELS_PAR_MINUTE", "AGENT_APPELS_PAR_JOUR",
+            "IMAGES_ACTIVES", "POI_ACTIF", "LIMITE_REQUETES_PAR_MINUTE", "VECTEURS_FOURNISSEUR",
+            "MODELE_VECTEURS", "IMAGES_PAR_LIEU", "AGENT_CHAINE", "CLES_API", "MODELES_API")}
         config.DOSSIER_RESULTATS = self.dossier
         config.IMAGES_ACTIVES = False
-        config.AGENT_API_ACTIVE = config.AGENT_LOCAL_ACTIF = False       # par défaut : aucune IA (règles + réponses de secours)
+        config.AGENT_FOURNISSEUR = config.AGENT_SECOURS_FOURNISSEUR = "off"   # par défaut : aucune IA (règles + secours)
+        config.AGENT_CHAINE, config.CLES_API, config.MODELES_API = [], {}, {}
+        config.VECTEURS_FOURNISSEUR = "off"
         config.POI_ACTIF = True
         agent_ia.reinitialiser_les_pannes()
         conversation._sessions.clear()
-        self.faux = None
-        # aucun test n'appelle le vrai web : la recherche complète est simulée (vide) sauf si le test la remplace
+        # aucun test n'appelle le vrai web : la recherche complète et la recherche web sont simulées (vides)
         self.pipeline_par_defaut = mock.patch.object(recherche, "lancer_recherche", return_value=reponse_pipeline([]))
         self.pipeline_par_defaut.start()
+        self.web_par_defaut = mock.patch.object(recherche_web, "chercher_resultats_web", return_value=[])
+        self.web_par_defaut.start()
+        self.page_par_defaut = mock.patch.object(recherche_web, "lire_page_publique", return_value="")
+        self.page_par_defaut.start()
 
     def tearDown(self):
         for nom, valeur in self.sauvegarde.items():
             setattr(config, nom, valeur)
 
         self.pipeline_par_defaut.stop()
-
-        if self.faux:
-            self.faux.arreter()
-
+        self.web_par_defaut.stop()
+        self.page_par_defaut.stop()
         shutil.rmtree(self.dossier, ignore_errors=True)
 
-    def activer_ia(self, api=True, local=True):
-        self.faux = FauxServeurIA()
-        config.AGENT_API_URL = config.URL_OLLAMA = self.faux.url
-        config.AGENT_API_CLE, config.AGENT_API_MODELE = "cle-test", "modele-test"
-        config.AGENT_API_ACTIVE, config.AGENT_LOCAL_ACTIF = api, local
+    def activer_ia(self, gestionnaire):
+        """Gemini simulé : gestionnaire(systeme, utilisateur) renvoie le JSON du modèle ou une exception à lever."""
+        faux = FauxModeleScenario(gestionnaire)
+        config.AGENT_FOURNISSEUR, config.AGENT_API_CLE, config.MODELE_REDACTION = "gemini", "cle-test", "gemini-2.5-flash"
+        remplacement = mock.patch.object(agent_ia, "_modele", return_value=faux)
+        remplacement.start()
+        self.addCleanup(remplacement.stop)
 
-        return self.faux
+        return faux
 
     def tour(self, message, session=None, **options):
         return conversation.traiter_message(message, session, **options)
@@ -85,30 +119,33 @@ class Base(unittest.TestCase):
 
 class TestAgentIA(Base):
     @unittest.skipUnless(agent_ia.LANGCHAIN_DISPONIBLE, "LangChain n'est pas installé dans cet environnement")
-    def test_langchain_ollama_est_le_seul_fournisseur(self):
+    def test_la_methode_de_sortie_structuree_depend_du_fournisseur(self):
         from modeles import ReponseChat
-        config.AGENT_LOCAL_ACTIF = True
 
         class Structure:
             def invoke(self, messages):
                 return ReponseChat(message="Bonjour", suggestions=[])
 
         class Modele:
-            def with_structured_output(self, classe, method):
-                self.classe, self.method = classe, method
+            def with_structured_output(self, classe, method, **options):
+                self.classe, self.method, self.options = classe, method, options
                 return Structure()
 
-        modele = Modele()
-        with mock.patch.object(agent_ia, "_modele", return_value=modele), \
-                mock.patch.object(agent_ia, "LANGCHAIN_DISPONIBLE", True):
-            resultat = agent_ia.demander_json_detaille([{"role": "user", "content": "u"}], ReponseChat)
+        for fournisseur, modele_ia, methode, options in (("gemini", "gemini-3.6-flash", "json_schema", {}),
+                                                         ("groq", "openai/gpt-oss-120b", "json_schema", {"strict": True}),
+                                                         ("groq", "qwen/qwen3.8-27b", "function_calling", {})):
+            config.AGENT_FOURNISSEUR, config.AGENT_API_CLE, config.MODELE_REDACTION = fournisseur, "cle-test", modele_ia
+            modele = Modele()
 
-        self.assertEqual(resultat[0].message, "Bonjour")
-        self.assertEqual(resultat[1].fournisseur, "langchain_ollama")
-        self.assertEqual(modele.method, "json_schema")
+            with mock.patch.object(agent_ia, "_modele", return_value=modele):
+                resultat = agent_ia.demander_json_detaille([{"role": "user", "content": "u"}], ReponseChat)
+
+            self.assertEqual(resultat[0].message, "Bonjour")
+            self.assertEqual(resultat[1].fournisseur, fournisseur)
+            self.assertEqual((modele.method, modele.options), (methode, options), modele_ia)
 
     def test_tout_en_panne_renvoie_none(self):
-        config.AGENT_LOCAL_ACTIF = False
+        config.AGENT_FOURNISSEUR = "off"
         from modeles import ReponseChat
         self.assertIsNone(agent_ia.demander_json([{"role": "user", "content": "u"}], ReponseChat))
         self.assertIsNone(agent_ia.completer([{"role": "user", "content": "u"}]))
@@ -172,37 +209,6 @@ class TestComprehension(Base):
         analyse = AnalyseTour.model_validate({"action": "chercher", "type_recherche": "null", "categorie": "null",
                                               "lieu": "None", "requete": "j'ai faim"})
         self.assertEqual((analyse.type_recherche, analyse.categorie, analyse.lieu), (None, None, None))
-
-    def test_une_conversation_passe_avant_une_tache_d_arriere_plan(self):
-        creneau = agent_ia._CreneauLocal()
-        self.assertTrue(creneau.prendre(True, 1))
-        ordre = []
-
-        def arriere_plan():
-            if creneau.prendre(False, 5):
-                ordre.append("arriere_plan")
-                creneau.rendre()
-
-        def conversation_():
-            if creneau.prendre(True, 5):
-                ordre.append("conversation")
-                time.sleep(0.1)
-                creneau.rendre()
-
-        fils = [threading.Thread(target=arriere_plan)]
-        fils[0].start()
-        time.sleep(0.1)
-        fils.append(threading.Thread(target=conversation_))
-        fils[1].start()
-        time.sleep(0.1)
-        creneau.rendre()
-
-        for fil in fils:
-            fil.join()
-
-        self.assertEqual(ordre, ["conversation", "arriere_plan"])
-        self.assertTrue(creneau.prendre(True, 1))
-        self.assertFalse(creneau.prendre(True, 0.2))      # occupé au-delà du budget : renoncement, pas d'attente infinie
 
     def test_detection_urgence_sans_faux_positifs(self):
         self.assertTrue(conversation.detecter_urgence("C'est une URGENCE !"))
@@ -382,7 +388,7 @@ class TestConversation(Base):
 
 class TestConversationAvecIA(Base):
     def scenario(self, systeme, utilisateur):
-        if "module de compréhension" in systeme:
+        if "Tu es le routeur" in systeme:
             return json.dumps({"action": "chercher", "type_recherche": "etablissement", "categorie": "hôtel",
                                "lieu": "Nosy Be", "requete": "hôtel Nosy Be"})
 
@@ -390,8 +396,7 @@ class TestConversationAvecIA(Base):
                            "suggestions": ["Le plus proche de la plage ?", "Voir sur la carte", "Un restaurant ?", "quatrième"]})
 
     def test_comprehension_et_redaction_par_l_api(self):
-        faux = self.activer_ia()
-        faux.gestionnaire = self.scenario
+        faux = self.activer_ia(self.scenario)
         poi = mock.patch.object(poi_osm, "chercher_etablissements",
                                 return_value=([lieu_osm("Nosy Be Hôtel", "Hôtel"), lieu_osm("Ravintsara", "Hôtel"),
                                                lieu_osm("Gerard et Francine", "Hôtel")], "Nosy Be"))
@@ -400,17 +405,18 @@ class TestConversationAvecIA(Base):
             resultat = self.tour("Je voudrais dormir près de la plage quelque part du côté de Nosy Be")
 
         poi_mock.assert_called_once_with("hotel", "Nosy Be")
-        self.assertEqual(resultat["meta"]["fournisseur_ia"], "api")
-        self.assertEqual(resultat["meta"]["comprehension"], "ia")
+        self.assertEqual(resultat["meta"]["fournisseur_ia"], "gemini")
+        self.assertEqual(resultat["meta"]["comprehension"], "regles")     # phrase claire : les règles suffisent, sans IA
         self.assertIn("Nosy Be Hôtel", resultat["message"])
         self.assertEqual(len(resultat["suggestions"]), 3)         # coupées à 3
-        bloc = faux.appels[-1]["corps"]["messages"][-1]["content"]
+        bloc = faux.appels[-1]
         self.assertIn("[1] Nosy Be Hôtel", bloc)                  # l'IA ne reçoit que les résultats réels
         self.assertIn("RÉSULTATS", bloc)
 
     def test_ia_indisponible_les_reponses_de_secours_prennent_le_relais(self):
-        faux = self.activer_ia()
-        faux.gestionnaire = lambda s, u: 503
+        erreur = RuntimeError("service indisponible")
+        erreur.status_code = 503
+        self.activer_ia(lambda s, u: erreur)
 
         with mock.patch.object(poi_osm, "chercher_etablissements", return_value=([lieu_osm("Restaurant Kanana")], "Antananarivo")):
             resultat = self.tour("restaurant à Antananarivo")
@@ -420,8 +426,7 @@ class TestConversationAvecIA(Base):
         self.assertIn("Restaurant Kanana", resultat["message"])
 
     def test_message_de_l_ia_avec_un_lien_est_refuse(self):
-        faux = self.activer_ia()
-        faux.gestionnaire = lambda s, u: json.dumps({"message": "Allez sur http://exemple.com", "suggestions": []})
+        self.activer_ia(lambda s, u: json.dumps({"message": "Allez sur http://exemple.com", "suggestions": []}))
 
         with mock.patch.object(poi_osm, "chercher_etablissements", return_value=([lieu_osm("Restaurant Kanana")], "Antananarivo")):
             resultat = self.tour("restaurant à Antananarivo")

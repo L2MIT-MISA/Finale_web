@@ -1,0 +1,68 @@
+{
+  "meta": {
+    "version_format": "1.0",
+    "date_collecte": "2026-10-30",
+    "collecte_par": "ia",
+    "statut": "brouillon"
+  },
+  "lieu": {
+    "niveau": "autre",
+    "code": null,
+    "code_region": null,
+    "code_district": null,
+    "code_commune": null,
+    "code_fokontany": null,
+    "nom": "Antalaha",
+    "latitude": -14.9052744917166,
+    "longitude": 50.2592142290872,
+    "precision_niveau": "centroide"
+  },
+  "profil": {
+    "description_courte": "Région orientale de la grande île au climat humide favorable à la culture de la vanille.",
+    "milieu": null,
+    "altitude_m": null,
+    "climat": null
+  },
+  "cultures": [],
+  "elevage_peche_ressources": [],
+  "lieux_celebres": [],
+  "culture_traditions": {
+    "groupes_ethniques": [],
+    "langues_dialectes": [],
+    "fetes_evenements": [],
+    "fady_coutumes": [],
+    "gastronomie_locale": []
+  },
+  "economie_acces": {
+    "marches": [],
+    "produits_locaux_vendus": [],
+    "route_principale": null,
+    "distance_chef_lieu_km": null,
+    "praticable_toute_annee": null
+  },
+  "tags_recherche": [
+    "cultive",
+    "culture",
+    "diego suarez",
+    "madagascar",
+    "nosy be",
+    "on",
+    "sava",
+    "toamasina",
+    "vanilla",
+    "vanille",
+    "vanillier"
+  ],
+  "sources": [
+    {
+      "id": "S1",
+      "id_source_db": null,
+      "type": "web",
+      "titre": "",
+      "url": "https://fr.wikipedia.org/wiki/Vanille",
+      "date_acces": "2026-10-30",
+      "fiabilite": "moyenne"
+    }
+  ],
+  "confiance_globale": 0.6
+}

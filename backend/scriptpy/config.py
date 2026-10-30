@@ -7,7 +7,7 @@ DOSSIER_PROJET = Path(__file__).resolve().parent
 def _charger_fichier_env() -> None:
     chemin = DOSSIER_PROJET / ".env"
 
-    if not chemin.is_file():
+    if os.getenv("CONNECTEO_SANS_FICHIER_ENV") == "1" or not chemin.is_file():
         return
 
     for ligne in chemin.read_text(encoding="utf-8").splitlines():
@@ -29,27 +29,64 @@ TAILLE_DU_POOL = int(os.getenv("TAILLE_POOL", "4"))
 CLE_API_GOOGLE = os.getenv("GOOGLE_API_KEY", "")
 IDENTIFIANT_MOTEUR_GOOGLE = os.getenv("GOOGLE_CX", "")
 # Recherche web : les fournisseurs sont essayés dans cet ordre, le premier qui répond est utilisé.
-ORDRE_FOURNISSEURS_RECHERCHE = [nom.strip() for nom in os.getenv("FOURNISSEURS_RECHERCHE", "searxng,duckduckgo,wikipedia,brave,google").split(",") if nom.strip()]
+ORDRE_FOURNISSEURS_RECHERCHE = [nom.strip() for nom in os.getenv("FOURNISSEURS_RECHERCHE", "tavily,searxng,duckduckgo,wikipedia,brave,google").split(",") if nom.strip()]
+# Tavily : API de recherche pour agents, 1 000 recherches gratuites par mois sans carte (documentation du 30/10/2026),
+# résultats et images en 1 à 2 s. Sans clé, il est ignoré.
+CLE_API_TAVILY = os.getenv("TAVILY_API_CLE", "")
 URL_SEARXNG = os.getenv("SEARXNG_URL", "http://localhost:8080").rstrip("/")
 CLE_API_BRAVE = os.getenv("BRAVE_API_KEY", "")
-URL_OLLAMA = os.getenv("OLLAMA_URL", "http://localhost:11434")
-
-# --- Agent IA : LangChain orchestre exclusivement le modèle local Ollama -----------------------------------------
-# Compatibilité historique neutralisée : une ancienne clé OpenRouter ne peut jamais être utilisée.
-AGENT_API_URL = AGENT_API_CLE = AGENT_API_MODELE = ""
-AGENT_API_ACTIVE = False
-AGENT_LOCAL_ACTIF = os.getenv("AGENT_LOCAL", "on").lower() != "off"
-MODELE_REDACTION = os.getenv("MODELE", "qwen3:4b")
-DELAI_PANNE_FOURNISSEUR_EN_SECONDES = 60                      # un fournisseur en panne est ignoré pendant ce temps
+# --- Agent IA : LangChain, uniquement par API (Gemini, puis Groq en secours) ---------------------------------------
+# AGENT_FOURNISSEUR = off | gemini | groq. Sans cette variable : gemini si AGENT_API_CLE est renseignée, sinon off.
+# La clé de l'IA est AGENT_API_CLE : jamais GOOGLE_API_KEY, réservée à Google Custom Search.
+# Mesurés le 30/10/2026 avec les clés du projet : gemini-2.5-flash est fermé aux nouveaux comptes (404),
+# gemini-3.7/3.8-flash étaient surchargés (503, 504, > 30 s) ; gemini-3.6-flash répondait en 5 à 7 s, Groq en 1 s.
+# L'offre gratuite Gemini limite gemini-3.6-flash à 20 requêtes par jour (message 429 de Google) : plusieurs modèles,
+# séparés par des virgules, forment une chaîne (chaque modèle a son propre quota), essayée dans l'ordre.
+# Cerebras : offre gratuite gpt-oss-120b et qwen-3.8-27b (5 req/min, 1 M tokens/jour, page « rate limits » du
+# 30/10/2026). OpenRouter : seul nemotron-3.5-super-vl:free a réussi réponse, JSON et agent le 30/10/2026 (gemma-4 :free
+# saturé, 429) ; la liste gratuite change souvent. Mistral : mistral-small-latest et mistral-medium-latest existent
+# (liste des modèles du compte), mais un compte non activé reçoit « x-ratelimit-limit-req-minute = 0 » (429).
+MODELES_PAR_DEFAUT = {"gemini": "gemini-3.6-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite",
+                      "groq": "openai/gpt-oss-120b,qwen/qwen3.8-27b",
+                      "cerebras": "gpt-oss-120b,qwen-3.8-27b",
+                      "openrouter": "nvidia/nemotron-3.5-super-vl:free",
+                      "mistral": "mistral-small-latest,mistral-medium-latest"}
+URLS_COMPATIBLES_OPENAI = {"cerebras": "https://api.cerebras.ai/v1", "openrouter": "https://openrouter.ai/api/v1"}
+AGENT_API_CLE = os.getenv("AGENT_API_CLE", "")
+AGENT_FOURNISSEUR = (os.getenv("AGENT_FOURNISSEUR") or ("gemini" if AGENT_API_CLE else "off")).strip().lower()
+MODELE_REDACTION = os.getenv("MODELE") or MODELES_PAR_DEFAUT.get(AGENT_FOURNISSEUR, "")
+# Fournisseur de secours, essayé quand le principal est en panne, limité (429) ou hors quota.
+AGENT_SECOURS_FOURNISSEUR = os.getenv("AGENT_SECOURS_FOURNISSEUR", "off").strip().lower()
+AGENT_SECOURS_CLE = os.getenv("AGENT_SECOURS_CLE", "")
+AGENT_SECOURS_MODELE = os.getenv("AGENT_SECOURS_MODELE") or MODELES_PAR_DEFAUT.get(AGENT_SECOURS_FOURNISSEUR, "")
+# Chaîne complète, essayée dans l'ordre : AGENT_CHAINE=gemini,groq,cerebras,openrouter. Chaque fournisseur a sa clé
+# <NOM>_API_CLE et, si besoin, ses modèles <NOM>_MODELES (virgules). Sans AGENT_CHAINE : principal puis secours.
+AGENT_CHAINE = [nom.strip().lower() for nom in os.getenv("AGENT_CHAINE", "").split(",") if nom.strip()]
+CLES_API = {nom: os.getenv(f"{nom.upper()}_API_CLE", "") for nom in MODELES_PAR_DEFAUT}
+MODELES_API = {nom: os.getenv(f"{nom.upper()}_MODELES", "") for nom in MODELES_PAR_DEFAUT}
+# Plafonds par fournisseur (protègent le quota gratuit). Au-delà : fournisseur suivant, puis repli sans IA.
+AGENT_APPELS_PAR_MINUTE = int(os.getenv("AGENT_APPELS_PAR_MINUTE", "10"))
+AGENT_APPELS_PAR_JOUR = int(os.getenv("AGENT_APPELS_PAR_JOUR", "200"))
+AGENT_APPELS_SIMULTANES = int(os.getenv("AGENT_APPELS_SIMULTANES", "4"))
+DELAI_PANNE_FOURNISSEUR_EN_SECONDES = 60                      # un fournisseur limité (429) est ignoré pendant ce temps
 TEMPERATURE = float(os.getenv("TEMPERATURE", "0.3"))
 TOP_P = float(os.getenv("TOP_P", "0.9"))
 
-# --- Vecteurs (RAG) : nomic-embed-text = 768 dimensions (et non 1024 comme bge-m3) ------------------------------
-MODELE_VECTEURS = os.getenv("MODELE_EMBEDDING", "nomic-embed-text")
+# --- Vecteurs (RAG) : 768 dimensions, comme vector(768) dans schema_rag.sql ------------------------------------
+# VECTEURS_FOURNISSEUR = off | gemini. Off par défaut : rien n'est envoyé ni indexé sans décision explicite.
+# Changer de modèle de vecteurs impose de réindexer : les vecteurs ne sont pas comparables d'un modèle à l'autre.
+VECTEURS_FOURNISSEUR = os.getenv("VECTEURS_FOURNISSEUR", "off").strip().lower()
+MODELE_VECTEURS = os.getenv("MODELE_EMBEDDING", "gemini-embedding-001")
 DIMENSION_VECTEUR = int(os.getenv("DIMENSION_VECTEUR", "768"))   # doit correspondre à vector(768) dans schema_rag.sql
-DUREE_MODELE_EN_MEMOIRE = "30m"               # keep_alive d'Ollama
+DELAI_VECTEUR_REQUETE_EN_SECONDES = float(os.getenv("VECTEURS_DELAI_REQUETE", "4"))
+VECTEURS_APPELS_PAR_MINUTE = int(os.getenv("VECTEURS_APPELS_PAR_MINUTE", "60"))
+VECTEURS_APPELS_PAR_JOUR = int(os.getenv("VECTEURS_APPELS_PAR_JOUR", "1000"))
+# Indexation automatique (démarrage, toutes les 10 minutes, lieux appris du web) : off par défaut (consomme le quota)
+INDEXATION_AUTO = os.getenv("INDEXATION_AUTO", "off").lower() != "off"
 URL_NOMINATIM = "https://nominatim.openstreetmap.org/search"
-IDENTIFIANT_APPLICATION = os.getenv("USER_AGENT", "connecteo-madagascar-geo/1.0")
+# Wikimedia (Wikipédia, Commons) refuse (403) un client sans contact dans son User-Agent ; Nominatim l'exige aussi.
+IDENTIFIANT_APPLICATION = os.getenv("USER_AGENT", "connecteo-madagascar-geo/1.0 (https://connecteo.duckdns.org)")
+HOTE_API = os.getenv("HOTE_API", "127.0.0.1")
 PORT_API = int(os.getenv("PORT", "8000"))
 
 # --- Dossiers et fichiers ----------------------------------------------------------------------------------------
@@ -136,15 +173,23 @@ OPTIONS_DE_CLARIFICATION = [
 ]
 
 # --- Assistant conversationnel (route /chat) ---------------------------------------------------------------------
-CHAT_MESSAGES_MAX_EN_MEMOIRE = 8              # contexte court : plus rapide avec qwen3:4b
+CHAT_MESSAGES_MAX_EN_MEMOIRE = 8              # derniers messages envoyés à l'IA avec le nouveau message
 CHAT_DUREE_SESSION_EN_SECONDES = 7200
 CHAT_SESSIONS_MAX = 500
 CHAT_ATTENTE_MAX_EN_SECONDES = float(os.getenv("CHAT_ATTENTE_MAX", "1.2"))
-CHAT_DUREE_MAX_EN_SECONDES = float(os.getenv("CHAT_DUREE_MAX", "25"))
-# Temps maximal accordé à l'IA à chaque étape (attente du modèle local comprise). Au-delà, l'assistant répond sans IA
-# (règles et texte de secours) au lieu de faire attendre l'utilisateur plusieurs minutes.
-CHAT_DELAI_COMPREHENSION_EN_SECONDES = float(os.getenv("CHAT_DELAI_COMPREHENSION", "5"))
-CHAT_DELAI_REDACTION_EN_SECONDES = float(os.getenv("CHAT_DELAI_REDACTION", "10"))
+CHAT_DUREE_MAX_EN_SECONDES = float(os.getenv("CHAT_DUREE_MAX", "55"))
+# Temps maximal accordé à l'IA à chaque étape. Au-delà, l'assistant répond sans IA (règles et texte de secours).
+# Mesuré le 30/10/2026 : une même requête Groq varie de 1 à 6 s selon le réseau ; 15 s ne laissaient pas assez au secours
+CHAT_DELAI_COMPREHENSION_EN_SECONDES = float(os.getenv("CHAT_DELAI_COMPREHENSION", "10"))
+CHAT_DELAI_REDACTION_EN_SECONDES = float(os.getenv("CHAT_DELAI_REDACTION", "20"))
+CHAT_DELAI_LIBRE_EN_SECONDES = float(os.getenv("CHAT_DELAI_LIBRE", "30"))
+CHAT_TOKENS_REDACTION = int(os.getenv("CHAT_TOKENS_REDACTION", "700"))
+CHAT_TOKENS_LIBRE = int(os.getenv("CHAT_TOKENS_LIBRE", "1500"))
+CHAT_CARACTERES_MAX_HISTORIQUE = 6000         # historique envoyé au fournisseur (les tours les plus anciens sont coupés)
+# Questions de connaissance (« Connais-tu X ? ») : recherche web préalable, comme un moteur de recherche
+CHAT_RECHERCHE_WEB_PREALABLE = os.getenv("CHAT_RECHERCHE_WEB", "on").lower() != "off"
+CHAT_DELAI_RECHERCHE_WEB_EN_SECONDES = float(os.getenv("CHAT_DELAI_RECHERCHE_WEB", "10"))
+CHAT_RESULTATS_WEB = 6
 CHAT_TAILLE_MAX_MESSAGE = 2000
 CHAT_LIEUX_MAX = 6                            # lieux détaillés dans la réponse du chat (le reste reste dans la liste)
 LIMITE_REQUETES_PAR_MINUTE = int(os.getenv("LIMITE_REQUETES_PAR_MINUTE", "40"))   # par adresse IP (protège le quota IA)
@@ -155,6 +200,12 @@ IMAGES_NOMBRE_LIEUX = int(os.getenv("IMAGES_NOMBRE_LIEUX", "8"))
 IMAGES_DELAI_TOTAL_EN_SECONDES = float(os.getenv("IMAGES_DELAI_TOTAL", "5"))
 IMAGES_DUREE_CACHE_EN_SECONDES = 86400
 IMAGES_DELAI_REQUETE_EN_SECONDES = 4
+IMAGES_PAR_LIEU = int(os.getenv("IMAGES_PAR_LIEU", "4"))
+IMAGES_COMMONS = os.getenv("IMAGES_COMMONS", "on").lower() != "off"      # Wikimedia Commons autour des coordonnées
+IMAGES_MAPILLARY_JETON = os.getenv("MAPILLARY_JETON", "")                # vues de rue, jeton gratuit (facultatif)
+# Google Places Photos (facultatif, compte de facturation requis) : jamais mis en cache (conditions de Google)
+IMAGES_GOOGLE_PLACES_CLE = os.getenv("GOOGLE_PLACES_CLE", "")
+IMAGES_GOOGLE_PLACES_PAR_RECHERCHE = int(os.getenv("GOOGLE_PLACES_PAR_RECHERCHE", "3"))
 
 # --- Établissements précis (restaurants, hôtels, agences...) : OpenStreetMap, sans clé ---------------------------
 POI_ACTIF = os.getenv("POI_OSM", "on").lower() != "off"
@@ -163,4 +214,4 @@ URLS_OVERPASS = [url.strip() for url in os.getenv(
 POI_RAYON_MAX_EN_METRES = 15000
 POI_RAYON_PAR_DEFAUT_EN_METRES = 6000
 POI_NOMBRE_MAX = 12
-POI_DELAI_EN_SECONDES = 5                     # attente maximale des sources d'établissements
+POI_DELAI_EN_SECONDES = int(os.getenv("POI_DELAI", "8"))   # attente maximale des sources d'établissements (4,3 s mesurées seules)

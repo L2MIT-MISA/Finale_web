@@ -19,16 +19,16 @@ import recherche
 import resultat_json
 
 
-def demarrer_les_modeles_puis_indexer(evenement_arret):
-    modele_ia.prechauffer_modeles()
-    indexation.reindexer_regulierement(evenement_arret)
+def indexer_si_demande(evenement_arret):
+    # Rien n'est vectorisé sans décision explicite (INDEXATION_AUTO=on, ou python indexation.py lancé à la main)
+    if config.INDEXATION_AUTO and modele_ia.vecteurs_actifs():
+        indexation.reindexer_regulierement(evenement_arret)
 
 
 @asynccontextmanager
 async def cycle_de_vie(application):
     evenement_arret = threading.Event()
-    # Un seul fil, l'un après l'autre : charger deux modèles en même temps peut saturer la mémoire d'Ollama
-    threading.Thread(target=demarrer_les_modeles_puis_indexer, args=(evenement_arret,), daemon=True).start()
+    threading.Thread(target=indexer_si_demande, args=(evenement_arret,), daemon=True).start()
     yield
     evenement_arret.set()
 
@@ -105,14 +105,17 @@ def ignorer_l_icone():
 
 
 @application.get("/sante")
-def verifier_les_services():
-    return diagnostic.diagnostiquer_services()
+def verifier_les_services(requete: Request):
+    """Route publique : état sans détail (ni message d'erreur, ni modèle, ni clé), recalculé au plus une fois par minute."""
+    limiter_le_debit(requete)
+
+    return diagnostic.etat_public_des_services()
 
 
 @application.get("/sante/rapide")
 def verifier_rapidement():
     """Sans appel réseau : pour savoir si l'API répond (utilisé par l'application mobile avant d'écrire)."""
-    return {"ok": True, "agent_ia": agent_ia.etat_des_fournisseurs()}
+    return {"ok": True, **agent_ia.etat_public()}
 
 
 @application.post("/chat")
@@ -152,7 +155,9 @@ def demander_une_recherche(demande: DemandeDeRecherche, requete: Request):
 
 
 @application.post("/recherche/preciser")
-def preciser_une_recherche(reponse: ReponseDeClarification):
+def preciser_une_recherche(reponse: ReponseDeClarification, requete: Request):
+    limiter_le_debit(requete)
+
     try:
         return recherche.preciser_recherche(reponse.id_resultat, reponse.id_option, reponse.texte_libre)
     except ValueError as erreur:

@@ -1,16 +1,68 @@
 # Connectéo : recherche de lieux de Madagascar (RAG + Google + résultats en JSON)
 
+## IA par API : Gemini, puis Groq en secours
+L'IA passe uniquement par des API (aucun modèle local), avec LangChain, et se choisit dans `.env` (modèle : `.env.example`, noms seulement).
+
+| Variable | Rôle |
+|---|---|
+| `AGENT_FOURNISSEUR` | `off`, `gemini` ou `groq`. Absente : `gemini` si `AGENT_API_CLE` est renseignée, sinon `off` |
+| `AGENT_API_CLE`, `MODELE` | clé et modèle du fournisseur principal (jamais `GOOGLE_API_KEY`, réservée à Custom Search) |
+| `AGENT_SECOURS_FOURNISSEUR`, `AGENT_SECOURS_CLE`, `AGENT_SECOURS_MODELE` | secours essayé si le principal répond 429, est hors quota, lent ou en panne |
+| `AGENT_CHAINE` | chaîne complète, dans l'ordre : `gemini,groq,cerebras,openrouter` (`mistral` facultatif). Un fournisseur sans clé est ignoré |
+| `<NOM>_API_CLE`, `<NOM>_MODELES` | clé et modèles (virgules) de chaque fournisseur : `GEMINI_`, `GROQ_`, `CEREBRAS_`, `OPENROUTER_`, `MISTRAL_` |
+| `AGENT_APPELS_PAR_MINUTE`, `AGENT_APPELS_PAR_JOUR` | plafonds par fournisseur (10 et 200 par défaut) ; au-delà : secours, puis réponses sans IA |
+| `VECTEURS_FOURNISSEUR` | `off` (défaut) ou `gemini` (768 dimensions, clé `AGENT_API_CLE`). Groq n'a pas de vecteurs |
+| `INDEXATION_AUTO` | `off` par défaut : rien n'est vectorisé sans décision (`python indexation.py`) |
+| `HOTE_API` | adresse d'écoute, `127.0.0.1` par défaut |
+| `MAPILLARY_JETON`, `GOOGLE_PLACES_CLE` | images facultatives (Google Places : compte de facturation requis, photos jamais mises en cache) |
+
+Modèles par défaut (mesurés le 30/10/2026) : Gemini `gemini-3.6-flash`, `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite`
+(`gemini-2.5-flash` est fermé aux nouveaux comptes ; 20 requêtes par jour et par modèle en gratuit) ; Groq
+`openai/gpt-oss-120b`, `qwen/qwen3.8-27b` ; Cerebras `gpt-oss-120b`, `qwen-3.8-27b` (5 requêtes/min) ; OpenRouter
+`google/gemma-4-31b-it:free`, `nvidia/nemotron-3.5-super-vl:free` (50 requêtes/jour pour tout le compte, liste changeante).
+Chaque modèle a son quota : quand Google répond « retry in 23h », le modèle est écarté jusqu'au renouvellement. Les quotas gratuits ne sont pas publiés de
+façon fixe : les lire dans Google AI Studio et la console Groq, puis régler les plafonds. Sur l'offre gratuite de Gemini,
+Google peut utiliser les contenus envoyés pour améliorer ses produits : à mentionner dans la politique de confidentialité.
+Ce qui part chez le fournisseur : le message (e-mails, numéros et adresses IP masqués), un historique court, les résultats
+trouvés. Jamais de clé, d'identifiant de session ni de `DATABASE_URL` ; ni la clé ni les messages ne sont journalisés.
+
+Comportement de l'assistant :
+- recherche de lieux : règles, puis IA si la phrase est ambiguë ; OpenStreetMap, référentiel, RAG et web ; galerie
+  d'images avec crédits (OpenStreetMap, site officiel, Google Places, Mapillary, Wikimedia Commons, Wikipédia) ;
+- question de connaissance (« Connais-tu Andry Rasoanaivo ? ») : recherche web d'abord, puis agent LangChain
+  (outils `rechercher_sur_le_web` et `lire_une_page`), réponse rédigée et sources affichées sous le message.
+  Sans IA, les résultats web sont présentés comme un moteur de recherche ;
+- urgence : numéros immédiatement, sans IA.
+
+### Déploiement sur le VPS
+```
+cd ~/Finale_web && git fetch && git checkout ia-api-configurable && git pull
+backend/scriptpy/.venv/bin/pip install -r backend/scriptpy/requirements.txt
+nano backend/scriptpy/.env        # AGENT_FOURNISSEUR=gemini, AGENT_API_CLE=..., AGENT_SECOURS_FOURNISSEUR=groq, AGENT_SECOURS_CLE=...
+chmod 600 backend/scriptpy/.env
+sudo systemctl restart connecteo-api && journalctl -u connecteo-api -n 40 --no-pager
+```
+Le front doit être recompilé (`VITE_AI_API_URL=/api npm run build`, puis copie de `dist/` vers `/var/www/connecteo`) pour
+afficher les sources web et attendre 40 s au lieu de 25 s.
+
+Vérifications : le diagnostic du démarrage (journal) indique « Agent IA (LangChain) OK » pour chaque fournisseur ;
+`curl -s http://127.0.0.1:8000/sante/rapide` renvoie `"ia": "ok"` ; dans le site, « Connais-tu Andry Rasoanaivo ? »
+donne une réponse avec ses sources, et « restaurant à Antananarivo » des lieux avec photos.
+
+Retour arrière immédiat : `AGENT_FOURNISSEUR=off` dans `.env` puis `sudo systemctl restart connecteo-api` (le site
+fonctionne alors avec les règles, les résultats web et les réponses sans IA).
+
 ## Lancer tout le programme (une seule commande)
 ```
 pip install -r requirements.txt
-ollama pull qwen3:4b && ollama pull bge-m3
 sudo apt install postgresql-16-pgvector          # adapter au numéro de version de PostgreSQL
 # scripts SQL, dans cet ordre : schema_madagascar.sql, ajout_province.sql, vues_triggers.sql, schema_rag.sql
 export DATABASE_URL=postgresql://utilisateur:mdp@localhost:5432/madagascar
 export GOOGLE_API_KEY=... GOOGLE_CX=...          # Google Programmable Search (facultatif)
+export AGENT_FOURNISSEUR=gemini AGENT_API_CLE=...  # IA (sinon réponses sans IA)
 python demarrer.py
 ```
-`demarrer.py` fait tout seul : diagnostic des services (PostgreSQL, Ollama, Google), préchauffage des modèles, indexation automatique des fichiers JSON (au démarrage puis toutes les 10 minutes, seulement ce qui a changé), API et page de démonstration sur `http://localhost:8000`. **Aucun module ne se lance à la main.**
+`demarrer.py` fait tout seul : diagnostic des services (PostgreSQL, IA, vecteurs, recherche web), indexation automatique des fichiers JSON si `INDEXATION_AUTO=on` (au démarrage puis toutes les 10 minutes, seulement ce qui a changé), API sur `http://127.0.0.1:8000`. **Aucun module ne se lance à la main.**
 
 ## Ce que déclenche la barre de recherche du site
 Le site appelle une seule route : `POST /recherche {"requete": "cacao"}`. Le basculement est automatique :
@@ -73,7 +125,8 @@ Résultat affiché avant la rédaction de l'IA · l'IA ne rédige que 2 phrases 
 | `recherche.py` | **orchestrateur** (le programme principal) |
 | `prompts.py` | **prompts système** (résumé rapide, extraction Google) |
 | `base_donnees.py` | **tout le SQL** (référentiel PostGIS + pgvector) |
-| `modele_ia.py` | appels Ollama : vecteurs et réponses JSON |
+| `agent_ia.py` | agent LangChain : fournisseurs (Gemini, Groq), secours, quotas, outils web |
+| `modele_ia.py` | vecteurs Gemini et réponses JSON |
 | `connaissances_json.py`, `indexation.py` | fichiers JSON → fragments → vecteurs → pgvector |
 | `recherche_web.py`, `coordonnees.py` | Google, pages web, géocodage, vérification des coordonnées |
 | `classement.py`, `resultat_json.py`, `clarification.py`, `requete.py`, `modeles.py` | classement, fichier résultat, précisions, requête, structures |
@@ -82,6 +135,6 @@ Résultat affiché avant la rédaction de l'IA · l'IA ne rédige que 2 phrases 
 
 ## Tests et limites
 `TEST_DATABASE_URL=postgresql://... python tests/test_pipeline.py` : indexation incrémentale, mode rapide, cache, format produits, vos fichiers réels, Google et ses protections, pannes (base, vecteurs, modèle), clarification, urgence, API.
-- **Testé** sur un vrai PostgreSQL 16 (PostGIS + pgvector) avec vos données, avec de **faux** modèles, Google et géocodeur. **Non testé** : appels réels à Ollama, Google et Nominatim.
-- `SEUIL_SIMILARITE_FRAGMENT` (0,50) est à **calibrer** avec le vrai bge-m3.
+- **Testé** sur un vrai PostgreSQL 16 (PostGIS + pgvector) avec vos données, avec de **faux** modèles, Google et géocodeur. **Non testé** : appels réels à Gemini, Groq, Google et Nominatim.
+- `SEUIL_SIMILARITE_FRAGMENT` est à **calibrer** avec les vrais vecteurs Gemini après la première indexation.
 - Reste à écrire : import des CSV nettoyés dans PostgreSQL ; nettoyage de la feuille `SR.2.2` ; la correspondance `E = GULFSAT` est à confirmer (ignorée dans les fiches des communes).

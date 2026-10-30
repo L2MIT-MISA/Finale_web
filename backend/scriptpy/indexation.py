@@ -14,9 +14,8 @@ from modeles import FragmentConnaissance
 
 journal = logging.getLogger("indexation")
 
-# Petits lots : Ollama traite les demandes de vecteurs une par une, donc une recherche d'utilisateur faite pendant
-# l'indexation attend la fin du lot en cours (16 textes ≈ 20 s sur processeur, 4 textes ≈ 5 s).
-TAILLE_DES_LOTS = 4
+# Un lot = un appel à l'API de vecteurs (compté dans le quota) ; Gemini accepte jusqu'à 100 textes par appel.
+TAILLE_DES_LOTS = 50
 
 
 def _ajouter_noms_des_parents(fragments: list[FragmentConnaissance]):
@@ -51,9 +50,8 @@ def indexer_fichiers(noms_fichiers: list[str] | None = None) -> dict[str, int]:
         bilan["inchanges"] += len(fragments) - len(nouveaux)
         fragments_a_enregistrer.extend(nouveaux)
 
-    # Chaque lot est enregistré dès que ses vecteurs sont calculés : sur un processeur sans carte graphique, tout indexer
-    # prend de longues minutes. Un arrêt du serveur en cours de route ne fait donc rien perdre (la reprise saute les
-    # fragments déjà en base), et les petits fichiers (lieux, produits, lus en premier) sont cherchables très vite.
+    # Chaque lot est enregistré dès que ses vecteurs sont calculés : un arrêt en cours de route (quota atteint, serveur
+    # redémarré) ne fait rien perdre, la reprise saute les fragments déjà en base.
     for debut in range(0, len(fragments_a_enregistrer), TAILLE_DES_LOTS):
         lot = fragments_a_enregistrer[debut:debut + TAILLE_DES_LOTS]
         vecteurs = modele_ia.calculer_vecteurs([fragment.texte for fragment in lot])

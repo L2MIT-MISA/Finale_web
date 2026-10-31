@@ -7,7 +7,7 @@ Application web React/TypeScript avec Vite, associée à une API Python pour la 
 - Node.js compatible avec Vite 8 : `20.19+` ou `22.12+`.
 - npm, fourni avec Node.js.
 - Python 3.10 ou supérieur pour le backend.
-- Pour toutes les fonctions du backend : PostgreSQL avec les schémas et tables attendus, ainsi qu’Ollama pour les modèles locaux.
+- Pour toutes les fonctions du backend : PostgreSQL avec les schémas et tables attendus, et une clé d’API Gemini (Groq en secours, facultatif). Aucun modèle d’IA local n’est utilisé.
 - Supabase et une clé Google Maps pour les fonctions concernées du front.
 
 ## Installation du front
@@ -101,9 +101,10 @@ Créer `backend/scriptpy/.env` :
 ```dotenv
 DATABASE_URL=postgresql://<utilisateur>:<mot-de-passe>@localhost:5432/<base>
 
-OLLAMA_URL=http://localhost:11434
-MODELE=qwen3:4b
-MODELE_EMBEDDING=nomic-embed-text
+AGENT_FOURNISSEUR=gemini
+AGENT_API_CLE=<votre-cle-gemini>
+AGENT_SECOURS_FOURNISSEUR=groq
+AGENT_SECOURS_CLE=<votre-cle-groq>
 
 PORT=8000
 CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
@@ -132,16 +133,11 @@ psql "$DATABASE_URL" -f backend/scriptpy/schema_rag.sql
 
 L’extension PostGIS et les tables attendues par le référentiel doivent déjà être disponibles. Vérifier l’état réel de la base avant d’appliquer un script de migration. `migration_vecteurs_768.sql` concerne une migration de dimension des vecteurs ; ne pas l’exécuter comme une étape standard d’installation.
 
-### Ollama
+### IA par API
 
-Installer et démarrer Ollama, puis récupérer les modèles configurés :
+L’assistant utilise uniquement des API : Gemini en principal, Groq en secours. Créer les clés sur https://aistudio.google.com/apikey et https://console.groq.com/keys, puis les placer dans `backend/scriptpy/.env` (jamais dans un fichier suivi par Git). Toutes les variables sont listées dans `backend/scriptpy/.env.example` et expliquées dans `backend/scriptpy/LISEZMOI.md`. Sans clé, le site fonctionne sans IA.
 
-```bash
-ollama pull qwen3:4b
-ollama pull nomic-embed-text
-```
-
-Les noms doivent correspondre à `MODELE` et `MODELE_EMBEDDING` dans `backend/scriptpy/.env`. Le modèle d’embeddings configuré utilise 768 dimensions, qui doivent rester cohérentes avec le schéma SQL.
+La recherche vectorielle est désactivée par défaut (`VECTEURS_FOURNISSEUR=off`). Avec `VECTEURS_FOURNISSEUR=gemini`, les vecteurs ont 768 dimensions, cohérentes avec `schema_rag.sql`.
 
 ### Installer et démarrer le backend
 
@@ -154,7 +150,7 @@ npm run backend
 
 La première commande crée l’environnement Python `backend/scriptpy/.venv` et installe les dépendances de `requirements.txt`. La seconde démarre l’API sur le port défini par `PORT`, qui vaut `8000` par défaut.
 
-Le backend affiche un diagnostic des services au démarrage. L’état de l’API est consultable à `http://localhost:8000/sante`. Une base de données ou Ollama indisponible peut désactiver certaines fonctions sans nécessairement empêcher le serveur de démarrer.
+Le backend affiche un diagnostic des services au démarrage. L’état de l’API est consultable à `http://localhost:8000/sante`. Une base de données ou une IA indisponible (clé absente, quota atteint) peut désactiver certaines fonctions sans empêcher le serveur de démarrer : le site répond alors sans IA.
 
 ## Tests du backend
 
@@ -205,4 +201,4 @@ Le mock ne remplace pas Supabase Auth ; l’authentification et certaines foncti
 - **La carte ne s’affiche pas** : vérifier la clé `VITE_GOOGLE_MAPS_API_KEY` et les autorisations associées dans Google Cloud.
 - **Le front ne joint pas le backend** : vérifier que l’API écoute au bon port et que `VITE_AI_API_URL`, `VITE_SEARCH_API_URL` et `CORS_ORIGINS` sont cohérents.
 - **Le diagnostic PostgreSQL signale des tables absentes** : `schema_rag.sql` ne crée que la partie RAG ; installer ou restaurer les schémas du référentiel et des infrastructures requis.
-- **Ollama signale un modèle manquant** : vérifier les noms configurés et exécuter les commandes `ollama pull` correspondantes.
+- **Le diagnostic signale l’agent IA indisponible** : vérifier `AGENT_FOURNISSEUR`, `AGENT_API_CLE` et le modèle (`MODELE`) ; une clé refusée ou un quota atteint est indiqué dans le journal du démarrage.

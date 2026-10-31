@@ -3,8 +3,8 @@ import ConnecteoMap from "../../components/ConnecteoMap/ConnecteoMap";
 import ChatPanel, { type Message } from "../../components/SearchResults/ChatPanel";
 import PlaceInfo from "../../components/SearchResults/PlaceInfo";
 import PlacesList from "../../components/SearchResults/PlacesList";
-import { demanderIA, lieuxDe, messagesDe } from "../../services/assistant";
-import type { CarteIA, Lieu, SourceIA } from "./searchTypes";
+import { demanderIA, imagesDe, lieuxDe, messagesDe, sourcesWebDe } from "../../services/assistant";
+import type { CarteIA, ImageReponseIA, Lieu, SourceIA } from "./searchTypes";
 import "../../components/SearchResults/SearchResults.css";
 import "./SearchPage.css";
 
@@ -40,8 +40,9 @@ export default function SearchPage() {
   const idRef = useRef(1);
   const ctrlRef = useRef<AbortController | null>(null);
 
-  const ajouter = useCallback((from: Message["from"], text: string, suggestions?: string[]) => {
-    setMessages((m) => [...m, { id: idRef.current++, from, text, suggestions }]);
+  const ajouter = useCallback((from: Message["from"], text: string, suggestions?: string[], sourcesWeb?: SourceIA[],
+                               images?: ImageReponseIA[]) => {
+    setMessages((m) => [...m, { id: idRef.current++, from, text, suggestions, sources: sourcesWeb, images }]);
   }, []);
 
   const lancer = useCallback(
@@ -67,7 +68,12 @@ export default function SearchPage() {
         if (versListe) setCarteOuverte(true);
         setVue(versListe ? "liste" : "chat");
         const textes = messagesDe(rep);
-        textes.forEach((t, index) => ajouter("ai", t, index === textes.length - 1 ? rep.suggestions : undefined));
+        const web = sourcesWebDe(rep);
+        const photos = imagesDe(rep);
+        textes.forEach((t, index) => {
+          const dernier = index === textes.length - 1;
+          ajouter("ai", t, dernier ? rep.suggestions : undefined, dernier ? web : undefined, dernier ? photos : undefined);
+        });
       } catch {
         if (ctrl.signal.aborted) return;
         ajouter("ai", "L'assistant est indisponible. Réessayez dans un instant.");

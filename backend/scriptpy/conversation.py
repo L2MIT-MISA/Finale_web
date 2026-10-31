@@ -1,16 +1,3 @@
-"""Assistant conversationnel : une vraie discussion, avec mémoire, au-dessus du moteur de recherche.
-
-Le site (web) et l'application (mobile) envoient la même chose : POST /chat {message, session_id, requete_id}.
-Chaque tour suit ces étapes :
-  1. urgence ?              -> numéros d'urgence tout de suite, sans IA ;
-  2. compréhension          -> règles rapides, puis l'agent LangChain + qwen3:4b quand c'est ambigu ;
-  3. action                 -> discuter, demander une précision, chercher (établissements OpenStreetMap, base RAG, web),
-                               ou montrer la carte (seulement si l'utilisateur le demande) ;
-  4. images d'aperçu        -> ajoutées aux lieux ;
-  5. réponse rédigée        -> l'IA rédige un message poli et précis à partir des seuls résultats trouvés.
-Le résultat est écrit dans donnees/resultats/<id>.json : /chat l'attend au plus CHAT_ATTENTE_MAX_EN_SECONDES, puis le client
-relit GET /resultats/<id> tant que `statut` vaut « en_cours ».
-"""
 from __future__ import annotations
 
 import logging
@@ -20,6 +7,7 @@ import threading
 import time
 import unicodedata
 from collections import OrderedDict
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
 import agent_ia
@@ -27,10 +15,11 @@ import config
 import poi_osm
 import recherche
 import recherche_images
+import recherche_web
 import resultat_json
 from modeles import AnalyseTour, ReponseChat
 from outils import extraire_mots_utiles, normaliser_nom, retirer_accents, trouver_groupe_synonymes
-from prompts import construire_messages_analyse, construire_messages_chat
+from prompts import construire_messages_analyse, construire_messages_chat, construire_messages_libre
 
 journal = logging.getLogger("conversation")
 
@@ -59,6 +48,22 @@ MESSAGE_PRESENTATION = ("Je suis l'assistant Connectéo. Je peux répondre à vo
                         "rédiger, expliquer ou rechercher des informations. Pour Madagascar, je peux aussi trouver "
                         "des lieux, services et ressources vérifiables, avec carte et images quand elles existent. "
                         "Que puis-je faire pour vous ?")
+MOTS_DE_TACHE = {"ecris", "ecrire", "redige", "rediger", "traduis", "traduire", "traduction", "resume", "resumer",
+                 "corrige", "corriger", "calcule", "calculer", "invente", "poeme", "blague", "reformule", "reformuler"}
+MOTIF_QUESTION_DE_CONNAISSANCE = re.compile(
+    r"\b(?:qui (?:est|etait|sont|etaient)|connais|connaissez|c est quoi|qu est ce|parle moi|parlez moi|que sais tu|"
+    r"quand|combien|definition|histoire|actualite|nouvelles|biographie|resultat|prix|meteo|president|ministre|fondateur)\b")
+MOTIF_DEBUT_DE_QUESTION = re.compile(
+    r"^\s*(?:est ce que |dis moi |dites moi |)(?:tu |vous |)(?:sais tu |savez vous |)(?:connais(?:sez)?(?: tu| vous)?|"
+    r"c est qui|qui est ce que|qui est ce|qui (?:est|etait|sont)|"
+    r"(?:je )?(?:veux|voudrais|cherche|recherche) (?:trouver |avoir |connaitre |)(?:des |les |plus d |d )?(?:informations?|infos?|renseignements?) (?:sur|a propos de|concernant)(?: la| le| les| l)?|"
+    r"(?:des |les )?(?:informations?|infos?) (?:sur|a propos de|concernant)(?: la| le| les| l)?|"
+    r"parle(?:z)? moi (?:de la|du|des|de|d)|que sais tu (?:de la|du|des|de|sur)|c est quoi|qu est ce que|qu est ce qu)\s+", re.I)
+MOTIF_SALUTATION = re.compile(r"^\s*(?:(?:bonjour|bonsoir|salut|hello|coucou|salama|hey|svp|stp|excusez moi|pardon)\b[\s,.!;:]*)+")
+MOTIF_CIVILITE = re.compile(r"\b(?:mr|m|mme|mlle|monsieur|madame|mademoiselle|dr|docteur|pr|professeur|prof)\b\.?\s*", re.I)
+MOTIF_URL = re.compile(r"https?://\S+|www\.\S+")
+MOTIF_CITATION = re.compile(r"\s?\[(\d{1,2})\]")
+_executeur_images = ThreadPoolExecutor(max_workers=4, thread_name_prefix="images-reponse")
 
 
 # --- Sessions -------------------------------------------------------------------------------------------------------
@@ -174,6 +179,16 @@ def extraire_le_lieu(message: str) -> str | None:
     return resultat.title() if resultat and resultat.islower() else resultat
 
 
+def _lieu_sans_preposition(message: str) -> str | None:
+    """« restaurants Antananarivo » : un nom propre (majuscule, hors début de phrase) qui n'est ni une catégorie ni une
+    formule de politesse est pris comme lieu."""
+    candidats = re.findall(r"(?<=\s)[A-ZÀ-Ý][\w'-]+(?:\s+[A-ZÀ-Ý][\w'-]+)*", message)
+    candidats = [candidat for candidat in candidats
+                 if not poi_osm.detecter_categorie(candidat) and not est_une_formule_de_politesse(candidat)]
+
+    return candidats[-1].strip(" -'") if candidats else None
+
+
 def _analyser_par_regles(message: str, session: Session) -> tuple[AnalyseTour, bool]:
     """Retourne (analyse, sure). `sure` = inutile de demander à l'IA."""
     mots = set(_mots(message))
@@ -206,7 +221,7 @@ def _analyser_par_regles(message: str, session: Session) -> tuple[AnalyseTour, b
                                lieu=lieu, requete=f"sites touristiques à visiter {lieu}"), True
 
     if categorie:
-        lieu = extraire_le_lieu(message)
+        lieu = extraire_le_lieu(message) or _lieu_sans_preposition(message)
 
         if not lieu and session.contexte.get("lieu") and len(mots) <= 8:
             lieu = session.contexte["lieu"]                      # « et un hôtel ? » : on garde la ville précédente
@@ -220,8 +235,11 @@ def _analyser_par_regles(message: str, session: Session) -> tuple[AnalyseTour, b
         # Sans ville : pour une phrase courte (« j'ai faim », « je cherche une pharmacie »), l'IA n'apprendrait rien de
         # plus et coûterait de longues secondes : on demande la ville tout de suite. Seule une longue phrase, où la
         # ville peut être formulée autrement, est confiée à l'IA.
+        # D'autres mots que la catégorie (« restaurants antananarivo » en minuscules) : l'IA peut y voir une ville
+        mots_restants = [mot for mot in extraire_mots_utiles(message) if len(mot) >= 3 and not poi_osm.detecter_categorie(mot)]
+
         return AnalyseTour(action="preciser", type_recherche="etablissement", categorie=categorie,
-                           question=_question_de_ville(categorie)), len(mots) <= MOTS_MAX_PHRASE_SIMPLE
+                           question=_question_de_ville(categorie)), not mots_restants
 
     if attente and len(mots) <= 5:                              # réponse à « Dans quelle ville ? »
         lieu = extraire_le_lieu(message) or message
@@ -283,8 +301,9 @@ def analyser(message: str, session: Session, historique: list[dict], meta: dict)
         return analyse
 
     lieux_precedents = [lieu["nom"] for lieu in session.lieux[:6]]
-    resultat = agent_ia.demander_json_detaille(construire_messages_analyse(historique[-8:], message, lieux_precedents),
-                                               AnalyseTour, max_tokens=120, temperature=0.1,
+    messages = construire_messages_analyse(_historique_pour_l_ia(historique[-8:]), agent_ia.proteger_les_donnees_personnelles(message),
+                                           lieux_precedents)
+    resultat = agent_ia.demander_json_detaille(messages, AnalyseTour, max_tokens=160, temperature=0.1,
                                                delai_max=config.CHAT_DELAI_COMPREHENSION_EN_SECONDES)
 
     if resultat is None:
@@ -453,11 +472,29 @@ def _message_valide(texte: str) -> bool:
     return bool(texte) and len(texte) <= 1500 and "http" not in texte.lower()
 
 
+def _historique_pour_l_ia(historique: list[dict]) -> list[dict]:
+    """Derniers tours seulement, données personnelles masquées, taille totale bornée (les plus anciens sont coupés)."""
+    retenus, taille = [], 0
+
+    for tour in reversed(historique[-config.CHAT_MESSAGES_MAX_EN_MEMOIRE:]):
+        if tour.get("role") not in ("user", "assistant") or not tour.get("text"):
+            continue
+
+        texte = agent_ia.proteger_les_donnees_personnelles(tour["text"]) if tour["role"] == "user" else tour["text"]
+        taille += len(texte)
+
+        if taille > config.CHAT_CARACTERES_MAX_HISTORIQUE:
+            break
+
+        retenus.append({"role": tour["role"], "text": texte})
+
+    return list(reversed(retenus))
+
+
 def rediger_avec_l_ia(message: str, historique: list[dict], bloc: str, meta: dict) -> ReponseChat | None:
-    resultat = agent_ia.demander_json_detaille(construire_messages_chat(historique[-config.CHAT_MESSAGES_MAX_EN_MEMOIRE:],
-                                                                        message, bloc),
-                                               ReponseChat, max_tokens=160, temperature=0.3,
-                                               delai_max=config.CHAT_DELAI_REDACTION_EN_SECONDES)
+    messages = construire_messages_chat(_historique_pour_l_ia(historique), agent_ia.proteger_les_donnees_personnelles(message), bloc)
+    resultat = agent_ia.demander_json_detaille(messages, ReponseChat, max_tokens=config.CHAT_TOKENS_REDACTION,
+                                               temperature=0.3, delai_max=config.CHAT_DELAI_REDACTION_EN_SECONDES)
 
     if resultat is None:
         return None
@@ -475,30 +512,142 @@ def rediger_avec_l_ia(message: str, historique: list[dict], bloc: str, meta: dic
     return reponse
 
 
-def repondre_librement(message: str, historique: list[dict], meta: dict) -> ReponseChat | None:
-    """Conversation générale : texte naturel et outils LangChain, sans l'enfermer dans le schéma des lieux."""
-    messages = [{
-        "role": "system",
-        "content": (
-            "Tu es Connectéo, un assistant généraliste utile, clair et précis, comparable à un assistant "
-            "génératif moderne. Réponds directement à toute demande légitime : connaissances générales, personnes, "
-            "explications, rédaction, résumé, traduction, idées, calcul simple et conseils. Utilise la recherche web "
-            "seulement si l'information est récente, incertaine ou si l'utilisateur demande une vérification. "
-            "N'invente jamais une source. Réponds dans la langue de l'utilisateur, sans parler de ton architecture."
-        ),
-    }]
-    messages += [{"role": tour["role"], "content": tour["text"]}
-                 for tour in historique[-config.CHAT_MESSAGES_MAX_EN_MEMOIRE:]
-                 if tour.get("role") in ("user", "assistant") and tour.get("text")]
-    messages.append({"role": "user", "content": message})
-    resultat = agent_ia.completer(messages, max_tokens=400, temperature=0.3,
-                                  delai_max=config.CHAT_DELAI_REDACTION_EN_SECONDES)
+def merite_une_recherche_web(message: str) -> bool:
+    """Question de connaissance (« Connais-tu X ? », « Qui est… », un nom propre) : chercher d'abord sur le web."""
+    if not config.CHAT_RECHERCHE_WEB_PREALABLE or est_une_formule_de_politesse(message) or not extraire_mots_utiles(message):
+        return False
 
-    if resultat is None or not resultat.texte.strip() or len(resultat.texte) > 5000:
-        return None
+    if set(_mots(message)) & MOTS_DE_TACHE:
+        return False
 
-    meta["fournisseur_ia"], meta["modele_ia"] = resultat.fournisseur, resultat.modele
-    return ReponseChat(message=resultat.texte.strip(), suggestions=[])
+    texte = " ".join(_mots(message))
+
+    return bool(MOTIF_QUESTION_DE_CONNAISSANCE.search(texte) or re.search(r"\s[A-ZÀ-Ý][a-zà-ÿ'-]{2,}", message))
+
+
+def requete_web_du_message(message: str) -> str:
+    """« Bonjour, connais-tu Mr Andry Rasoanaivo ? » -> « Andry Rasoanaivo » (le reste ne sert pas au moteur)."""
+    texte = retirer_accents(message).lower().replace("'", " ").replace("-", " ")    # même longueur que message
+    salutation = MOTIF_SALUTATION.match(texte)
+    position = salutation.end() if salutation else 0
+    debut = MOTIF_DEBUT_DE_QUESTION.match(texte[position:])
+    position += debut.end() if debut else 0
+    requete = MOTIF_CIVILITE.sub("", message[position:]).strip(" ?!.,;:")
+
+    return requete or message.strip(" ?!.,;:")
+
+
+def _sources_citees_d_abord(texte: str, resultats: list[dict], sources_outils: list[dict]) -> list[dict]:
+    cites = []
+
+    for numero in MOTIF_CITATION.findall(texte):
+        indice = int(numero) - 1
+
+        if 0 <= indice < len(resultats) and resultats[indice] not in cites:
+            cites.append(resultats[indice])
+
+    ordre = cites + [resultat for resultat in resultats[:3] if resultat not in cites] + sources_outils
+    sources, urls = [], set()
+
+    for source in ordre:
+        if source.get("url") and source["url"] not in urls:
+            urls.add(source["url"])
+            sources.append({"reference": f"W{len(sources) + 1}", "origine": "web",
+                            "titre": source.get("titre") or source["url"], "url": source["url"],
+                            "extrait": (source.get("extrait") or "")[:300]})
+
+    return sources[:6]
+
+
+def _nettoyer_texte_libre(texte: str) -> str:
+    texte = MOTIF_URL.sub("", texte)
+    texte = MOTIF_CITATION.sub("", texte)
+    texte = re.sub(r"\*\*|__|^#{1,6}\s*", "", texte, flags=re.M)
+
+    return re.sub(r"[ \t]+\n", "\n", re.sub(r"\n{3,}", "\n\n", texte)).strip()
+
+
+def repondre_librement(message: str, historique: list[dict], meta: dict,
+                       delai_max: float | None = None) -> tuple[ReponseChat | None, list[dict], list[dict]]:
+    """Conversation générale : recherche web préalable si c'est une question de connaissance, puis agent LangChain.
+    Retourne (réponse ou None si l'IA est indisponible, sources web, photos)."""
+    resultats: list[dict] = []
+    futur_images = None
+    fin = time.monotonic() + (config.CHAT_DELAI_LIBRE_EN_SECONDES if delai_max is None else delai_max)
+    debut_du_budget = time.monotonic()
+
+    if merite_une_recherche_web(message):
+        debut = time.monotonic()
+        resultats = recherche_web.chercher_resultats_web(requete_web_du_message(message), config.CHAT_RESULTATS_WEB,
+                                                         config.CHAT_DELAI_RECHERCHE_WEB_EN_SECONDES)
+        if resultats:
+            # Les extraits du moteur sont trop courts pour un fait précis ou récent : on lit la première page
+            contenu = recherche_web.lire_page_publique(resultats[0]["url"], 3, 2500)
+            resultats[0] = {**resultats[0], "contenu": contenu} if contenu else resultats[0]
+
+        meta.setdefault("etapes_ms", {})["recherche_web"] = int((time.monotonic() - debut) * 1000)
+        meta["resultats_web"] = len(resultats)
+        # Photos cherchées pendant que l'IA rédige : la réponse n'attend pas les images
+        futur_images = _executeur_images.submit(recherche_images.images_pour_une_reponse, requete_web_du_message(message),
+                                                resultats)
+
+    messages = construire_messages_libre(_historique_pour_l_ia(historique), agent_ia.proteger_les_donnees_personnelles(message),
+                                         agent_ia.formater_resultats_web(resultats))
+    # La recherche web préalable ne doit pas manger le temps de l'IA : le budget de l'agent démarre après elle
+    # Recherche préalable faite : le modèle a déjà les résultats (et la première page), il répond en un seul appel.
+    # Relancer ses outils web prendrait tout son temps (mesuré : chaque fournisseur dépassait sa part du budget).
+    # Web muet : il répond avec ses connaissances en signalant ce qui peut avoir changé.
+    recherche_faite = "resultats_web" in meta
+    web_muet = recherche_faite and not resultats
+    outils = [] if recherche_faite else agent_ia.construire_outils_web()
+
+    if web_muet:
+        messages[-1]["content"] += ("\n\n---\nLa recherche web n'a rien donné : réponds avec tes connaissances, sans inventer. "
+                                    "Si l'information peut avoir changé récemment ou concerne une personne peu connue, dis-le.")
+
+    reponse = agent_ia.completer(messages, max_tokens=config.CHAT_TOKENS_LIBRE, temperature=0.3,
+                                 delai_max=max(3.0, fin - debut_du_budget), outils=outils)
+
+    images = _recuperer_les_images(futur_images, meta)
+
+    if reponse is None or not reponse.texte.strip():
+        return None, _sources_citees_d_abord("", resultats, []), images
+
+    texte = _nettoyer_texte_libre(reponse.texte)[:6000]
+
+    if not texte:
+        return None, _sources_citees_d_abord("", resultats, []), images
+
+    meta["fournisseur_ia"], meta["modele_ia"] = reponse.fournisseur, reponse.modele
+
+    return ReponseChat(message=texte, suggestions=[]), _sources_citees_d_abord(reponse.texte, resultats, reponse.sources), images
+
+
+def _recuperer_les_images(futur, meta: dict) -> list[dict]:
+    if futur is None:
+        return []
+
+    try:
+        images = futur.result(timeout=2)
+    except Exception:  # noqa: BLE001 - délai dépassé ou source en panne : la réponse part sans photo
+        return []
+
+    meta["images_reponse"] = len(images)
+
+    return images
+
+
+def reponse_web_sans_ia(message: str, sources: list[dict]) -> ReponseChat:
+    """L'IA est indisponible mais le web a répondu : on montre les résultats, comme un moteur de recherche."""
+    lignes = [f"Voici ce que j'ai trouvé sur le web à propos de « {requete_web_du_message(message)} » :"]
+
+    for source in sources[:5]:
+        extrait = source.get("extrait") or ""
+        lignes.append(f"- {source['titre']}" + (f" : {extrait}" if extrait else ""))
+
+    lignes.append("Les liens sont indiqués sous ce message. Souhaitez-vous que je précise un point ?")
+
+    return ReponseChat(message=_nettoyer_texte_libre("\n".join(lignes)), suggestions=[])
 
 
 def reponse_de_secours(analyse: AnalyseTour, message: str, infos: dict | None, lieux: list[dict]) -> ReponseChat:
@@ -513,8 +662,9 @@ def reponse_de_secours(analyse: AnalyseTour, message: str, infos: dict | None, l
         if est_une_formule_de_politesse(message):
             return ReponseChat(message=f"Bonjour ! {MESSAGE_PRESENTATION}", suggestions=SUGGESTIONS_PAR_DEFAUT)
 
-        return ReponseChat(message="Je peux répondre à cette demande, mais mon modèle local est momentanément "
-                                   "indisponible. Reformulez brièvement votre question ou réessayez dans un instant.",
+        return ReponseChat(message="Je ne peux pas répondre à cette demande pour le moment : le service d'IA est "
+                                   "momentanément indisponible. Réessayez dans un instant, ou cherchez un lieu, un "
+                                   "service ou une ressource à Madagascar.",
                            suggestions=SUGGESTIONS_PAR_DEFAUT[:2])
 
     quoi = (poi_osm.libelle_de_la_categorie(infos["categorie"]).lower() if infos.get("categorie") else None)
@@ -540,7 +690,7 @@ def _enveloppe(*, identifiant: str, session_id: str, statut: str, date_creation:
                sources: list[dict] | None = None, suggestions: list[str] | None = None, garder_resultats: bool = False,
                ouvrir_carte: bool = False, urgence: dict | None = None, avertissements: list[str] | None = None,
                erreur: str | None = None, source_principale: str = "aucune", meta: dict | None = None,
-               requete_info: dict | None = None) -> dict:
+               requete_info: dict | None = None, images: list[dict] | None = None) -> dict:
     lieux = lieux or []
 
     return {
@@ -560,6 +710,7 @@ def _enveloppe(*, identifiant: str, session_id: str, statut: str, date_creation:
         "lieux": lieux,
         "carte": resultat_json.calculer_carte_depuis_sorties(lieux),
         "sources": sources or [],
+        "images": images or [],                                    # photos d'une réponse générale (avec leur crédit)
         "clarification": None,
         "urgence": urgence,
         "avertissements": list(dict.fromkeys(avertissements or [])),
@@ -570,6 +721,7 @@ def _enveloppe(*, identifiant: str, session_id: str, statut: str, date_creation:
 
 def _produire_le_resultat(session: Session, historique: list[dict], message: str, identifiant: str, date_creation: str,
                           avertissements: list[str], meta: dict) -> dict:
+    debut_du_tour = time.monotonic()
     base = {"identifiant": identifiant, "session_id": session.id, "date_creation": date_creation,
             "texte_original": message, "avertissements": avertissements, "meta": meta}
 
@@ -635,21 +787,45 @@ def _produire_le_resultat(session: Session, historique: list[dict], message: str
         if infos.get("categorie"):
             session.contexte["categorie"] = infos["categorie"]
 
-        debut = time.monotonic()
-        nombre_avec_image = recherche_images.enrichir_avec_images(lieux)
-        meta.setdefault("etapes_ms", {})["images"] = int((time.monotonic() - debut) * 1000)
-        meta["lieux_avec_image"] = nombre_avec_image
+        if not lieux and analyse.type_recherche == "lieu":
+            # Un nom propre introuvable comme lieu (souvent une personne ou une organisation) : réponse générale
+            # appuyée sur le web plutôt qu'un « aucun résultat ».
+            analyse, infos, garder = AnalyseTour(action="discuter"), None, True
+            meta["action"] = "discuter_apres_recherche_vide"
+        else:
+            debut = time.monotonic()
+            nombre_avec_image = recherche_images.enrichir_avec_images(lieux)
+            meta.setdefault("etapes_ms", {})["images"] = int((time.monotonic() - debut) * 1000)
+            meta["lieux_avec_image"] = nombre_avec_image
     elif analyse.action == "discuter":
         garder = True
 
     # 4) Réponse rédigée
     bloc = construire_le_bloc_de_resultats(infos, lieux, avertissements, note_du_bloc)
     debut = time.monotonic()
-    reponse = (repondre_librement(message, historique, meta) if analyse.action == "discuter" and infos is None
-               else rediger_avec_l_ia(message, historique, bloc, meta))
+    sources_web: list[dict] = []
+    images_reponse: list[dict] = []
+
+    if analyse.action == "discuter" and infos is None and not note_du_bloc:
+        reste_du_tour = (config.CHAT_DUREE_MAX_EN_SECONDES - (time.monotonic() - debut_du_tour) - 3
+                         - config.CHAT_DELAI_RECHERCHE_WEB_EN_SECONDES)
+        reponse, sources_web, images_reponse = repondre_librement(message, historique, meta,
+                                                  max(5.0, min(config.CHAT_DELAI_LIBRE_EN_SECONDES, reste_du_tour)))
+
+        if reponse is None and sources_web:
+            meta.setdefault("fournisseur_ia", "aucun")
+            reponse = reponse_web_sans_ia(message, sources_web)
+    else:
+        reponse = rediger_avec_l_ia(message, historique, bloc, meta)
+
     meta.setdefault("etapes_ms", {})["redaction"] = int((time.monotonic() - debut) * 1000)
 
-    if reponse is None:
+    if reponse is None and meta.get("resultats_web") == 0:
+        meta.setdefault("fournisseur_ia", "aucun")
+        reponse = ReponseChat(message=f"Je n'ai trouvé aucune information fiable sur « {requete_web_du_message(message)} » "
+                                      "pour le moment. Pouvez-vous préciser (métier, ville, organisation) ?",
+                              suggestions=[])
+    elif reponse is None:
         meta.setdefault("fournisseur_ia", "aucun")
         reponse = reponse_de_secours(analyse, message, infos, lieux)
 
@@ -666,7 +842,8 @@ def _produire_le_resultat(session: Session, historique: list[dict], message: str
 
     return _enveloppe(statut="termine", message=reponse.message, suggestions=reponse.suggestions, lieux=lieux,
                       garder_resultats=garder, ouvrir_carte=ouvrir_carte, source_principale=source_principale,
-                      intention=(infos or {}).get("intention"), requete_info=infos, sources=(infos or {}).get("sources"),
+                      intention=(infos or {}).get("intention"), requete_info=infos,
+                      sources=(infos or {}).get("sources") or sources_web, images=images_reponse,
                       mots_cles=[mot for mot in extraire_mots_utiles((infos or {}).get("requete", ""))], **base)
 
 

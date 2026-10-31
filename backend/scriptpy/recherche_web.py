@@ -1,16 +1,20 @@
 from __future__ import annotations
 
+import ipaddress
 import logging
+import re
+import socket
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from dataclasses import dataclass
+from urllib.parse import urlparse
 
 import httpx
 from bs4 import BeautifulSoup
 
 import config
-from outils import coordonnees_valides, retirer_accents
+from outils import coordonnees_valides, extraire_mots_utiles, normaliser_nom, retirer_accents
 
 journal = logging.getLogger("recherche_web")
 
@@ -155,7 +159,33 @@ def _recherche_wikipedia(question: str, nombre: int) -> list[dict]:
     return resultats[:nombre]
 
 
-FOURNISSEURS = {"searxng": _recherche_searxng, "brave": _recherche_brave, "wikipedia": _recherche_wikipedia,
+def _recherche_tavily(question: str, nombre: int) -> list[dict]:
+    """API Tavily : résultats et images liées à la question (les images servent aux photos des réponses)."""
+    if not config.CLE_API_TAVILY:
+        raise FournisseurIndisponible("TAVILY_API_CLE non définie")
+
+    try:
+        reponse = httpx.post("https://api.tavily.com/search", timeout=DELAI_RECHERCHE_EN_SECONDES,
+                             headers={"Authorization": f"Bearer {config.CLE_API_TAVILY}"},
+                             json={"query": question, "search_depth": "basic", "max_results": nombre, "include_images": True})
+    except httpx.HTTPError as erreur:
+        raise FournisseurIndisponible(f"Tavily injoignable ({type(erreur).__name__})") from erreur
+
+    if reponse.status_code != 200:
+        raise FournisseurIndisponible(f"Tavily a répondu {reponse.status_code} (clé invalide ou quota mensuel atteint)")
+
+    donnees = reponse.json()
+    images = [image if isinstance(image, str) else image.get("url") for image in donnees.get("images") or []]
+    resultats = [{"title": r.get("title", ""), "link": r.get("url", ""), "snippet": r.get("content", "")}
+                 for r in donnees.get("results", [])[:nombre]]
+
+    if resultats:
+        resultats[0]["images"] = [image for image in images if image]
+
+    return resultats
+
+
+FOURNISSEURS = {"tavily": _recherche_tavily, "searxng": _recherche_searxng, "brave": _recherche_brave, "wikipedia": _recherche_wikipedia,
                 "duckduckgo": _recherche_duckduckgo, "google": _recherche_google}
 
 
@@ -183,6 +213,119 @@ def _interroger_web(texte_requete: str) -> list[dict]:
         echecs.append(f"{nom} : aucun résultat")
 
     raise RechercheGoogleIndisponible(" | ".join(echecs) or "aucun fournisseur configuré")
+
+
+_executeur_assistant = ThreadPoolExecutor(max_workers=12, thread_name_prefix="web-assistant")
+# ddgs (moteur bing) colle parfois plusieurs titres : « … | LinkedInAndry Rasoanaivo - Google Scholar… »
+MOTIF_TITRES_COLLES = re.compile(r"(?<=[a-zà-ÿ.)\]])(?=[A-ZÀ-Ý][a-zà-ÿ]+ [A-ZÀ-Ý])")
+
+
+def nettoyer_titre(titre: str) -> str:
+    titre = " ".join((titre or "").split())
+
+    return MOTIF_TITRES_COLLES.split(titre, maxsplit=1)[0].strip()[:160]
+
+
+def resultat_pertinent(question: str, texte: str) -> bool:
+    """Tous les noms propres de la question doivent figurer dans le résultat (une page qui ne cite que « Rasoanaivo »
+    ne répond pas à « Andry Rasoanaivo ») ; pour les autres mots, la moitié suffit (« président actuel »)."""
+    texte_normalise = f" {normaliser_nom(texte)} "
+    noms_propres = {normaliser_nom(mot) for mot in re.findall(r"\b[A-ZÀ-Ý][\w'-]{2,}", question)}
+    noms_propres = {mot for mot in noms_propres if mot and mot not in {"MADAGASCAR"}}
+    autres = [mot for mot in extraire_mots_utiles(question) if len(mot) >= 3 and mot not in noms_propres]
+
+    if any(f" {mot} " not in texte_normalise for mot in noms_propres):
+        return False
+
+    # mots ordinaires : début de mot, pour accepter le pluriel (« président » / « présidents »)
+    return not autres or sum(1 for mot in autres if f" {mot}" in texte_normalise) * 2 >= len(autres)
+
+
+def chercher_resultats_web(question: str, nombre: int, delai: float) -> list[dict]:
+    """Résultats web (titre, url, extrait) pour l'assistant, bornés dans le temps. Ne lève jamais d'exception.
+
+    Tous les fournisseurs configurés sont interrogés en parallèle (un moteur lent ne retarde pas un moteur rapide) ;
+    les résultats sont fusionnés dans l'ordre de config.ORDRE_FOURNISSEURS_RECHERCHE, sans doublon."""
+    fin = time.monotonic() + max(0.5, delai)
+    futurs = {nom: _executeur_assistant.submit(FOURNISSEURS[nom], question, nombre)
+              for nom in config.ORDRE_FOURNISSEURS_RECHERCHE if nom in FOURNISSEURS}
+    en_attente = set(futurs.values())
+
+    # On s'arrête dès que les moteurs déjà terminés donnent assez de résultats pertinents (mesuré : Tavily 3 à 9 s,
+    # DuckDuckGo jusqu'à 18 s) : un moteur lent ne retarde plus la réponse.
+    while en_attente and time.monotonic() < fin:
+        _, en_attente = wait(en_attente, timeout=fin - time.monotonic(), return_when=FIRST_COMPLETED)
+
+        if len(_fusionner_resultats(question, nombre, futurs, en_attente, journaliser=False)) >= min(3, nombre):
+            break
+
+    return _fusionner_resultats(question, nombre, futurs, en_attente, journaliser=True)
+
+
+def _fusionner_resultats(question: str, nombre: int, futurs: dict, en_attente: set, journaliser: bool) -> list[dict]:
+    resultats: list[dict] = []
+    urls_vues: set[str] = set()
+
+    for nom, futur in futurs.items():
+        if futur in en_attente:
+            if journaliser:
+                journal.info("Recherche web de l'assistant : %s trop lent", nom)
+            continue
+
+        try:
+            trouves = futur.result()
+        except Exception as erreur:  # noqa: BLE001 - un fournisseur en panne n'empêche pas les autres de répondre
+            if journaliser:
+                journal.debug("Recherche web de l'assistant : %s indisponible (%s)", nom, type(erreur).__name__)
+            continue
+
+        for trouve in trouves:
+            url = (trouve.get("link") or "").strip()
+            titre, extrait = nettoyer_titre(trouve.get("title")), " ".join((trouve.get("snippet") or "").split())[:400]
+
+            if (url.startswith(("http://", "https://")) and url not in urls_vues
+                    and resultat_pertinent(question, f"{titre} {extrait} {url}")):
+                urls_vues.add(url)
+                resultats.append({"titre": titre or url, "url": url, "extrait": extrait, "fournisseur": nom,
+                                  "images": trouve.get("images") or []})
+
+    return resultats[:nombre]
+
+
+def adresse_publique(url: str) -> bool:
+    """Vrai si l'URL est http(s) et que son hôte ne désigne ni la machine ni un réseau privé (protection SSRF)."""
+    try:
+        partie = urlparse(url)
+
+        if partie.scheme not in ("http", "https") or not partie.hostname:
+            return False
+
+        adresses = {info[4][0] for info in socket.getaddrinfo(partie.hostname, None)}
+    except (ValueError, OSError):
+        return False
+
+    for adresse in adresses:
+        ip = ipaddress.ip_address(adresse.split("%")[0])
+
+        if not ip.is_global:
+            return False
+
+    return bool(adresses)
+
+
+def lire_page_publique(url: str, delai: float, caracteres_max: int = 4000) -> str:
+    """Texte principal d'une page web publique, borné en taille et en temps. Chaîne vide si illisible."""
+    if not adresse_publique(url):
+        return ""
+
+    futur = _executeur_assistant.submit(_lire_texte_de_la_page, url, [])
+
+    try:
+        texte = futur.result(timeout=max(1.0, delai))
+    except Exception:  # noqa: BLE001 - délai dépassé ou page illisible
+        return ""
+
+    return texte[:caracteres_max]
 
 
 def tester_google() -> tuple[bool, str]:

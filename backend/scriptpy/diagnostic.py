@@ -1,10 +1,15 @@
-import httpx
+import threading
+import time
 
 import agent_ia
 import base_donnees
 import config
 import recherche_web
 from base_donnees import BaseIndisponible
+
+DUREE_CACHE_SANTE_EN_SECONDES = 60
+_cache_sante: tuple[float, list[dict]] | None = None
+_verrou_sante = threading.Lock()
 
 
 def _construire_etat(service: str, fonctionne: bool, message: str, consequence_si_absent: str) -> dict:
@@ -25,28 +30,39 @@ def verifier_postgresql() -> dict:
         return _construire_etat("PostgreSQL", False, str(erreur), consequence)
 
 
-def verifier_ollama() -> dict:
-    consequence = "Pas de vecteurs ni de modèle local : recherche par mots-clés seulement, réponses rédigées automatiquement."
+def verifier_agent_ia(appel_reel: bool) -> dict:
+    """appel_reel=True (démarrage, console) : petit appel à chaque fournisseur pour vérifier clé et modèle."""
+    consequence = "Pas d'IA : règles, résultats web et réponses rédigées automatiquement."
+    fournisseurs = agent_ia.lister_les_fournisseurs()
 
-    try:
-        reponse = httpx.get(f"{config.URL_OLLAMA}/api/tags", timeout=3)
-        reponse.raise_for_status()
-    except httpx.HTTPError as erreur:
-        return _construire_etat("Ollama", False, f"injoignable ({erreur})", consequence)
+    if not agent_ia.LANGCHAIN_DISPONIBLE:
+        return _construire_etat("Agent IA (LangChain)", False, "LangChain non installé", consequence)
 
-    modeles_installes = [modele["name"] for modele in reponse.json().get("models", [])]
-    modeles_manquants = [nom for nom in (config.MODELE_REDACTION, config.MODELE_VECTEURS)
-                         if not any(installe == nom or installe.startswith(f"{nom}:") for installe in modeles_installes)]
+    if not fournisseurs:
+        return _construire_etat("Agent IA (LangChain)", False,
+                                f"désactivé (AGENT_FOURNISSEUR={config.AGENT_FOURNISSEUR}, clé absente ou fournisseur inconnu)",
+                                consequence)
 
-    if modeles_manquants:
-        return _construire_etat("Ollama", False, f"modèles à installer (ollama pull) : {', '.join(modeles_manquants)}", consequence)
+    if not appel_reel:
+        etat = agent_ia.etat_public()
+        return _construire_etat("Agent IA (LangChain)", etat["ia"] == "ok", etat["ia"], consequence)
 
-    return _construire_etat("Ollama", True, f"modèles prêts : {config.MODELE_REDACTION}, {config.MODELE_VECTEURS}", consequence)
+    bilans = agent_ia.tester_les_fournisseurs()
+    message = " ; ".join(f"{bilan['fournisseur']} : {bilan['message']}" for bilan in bilans)
+
+    return _construire_etat("Agent IA (LangChain)", any(bilan["ok"] for bilan in bilans), message, consequence)
 
 
-def verifier_langchain() -> dict:
-    return _construire_etat("Agent LangChain", True, f"ChatOllama local : {config.MODELE_REDACTION}",
-                            "Sans LangChain, le serveur ne peut pas démarrer.")
+def verifier_vecteurs() -> dict:
+    consequence = "Recherche par mots-clés seulement (pas de recherche par le sens)."
+
+    if config.VECTEURS_FOURNISSEUR == "off":
+        return _construire_etat("Vecteurs (RAG)", False, "désactivés (VECTEURS_FOURNISSEUR=off)", consequence)
+
+    message = f"{config.VECTEURS_FOURNISSEUR} ({config.MODELE_VECTEURS}, {config.DIMENSION_VECTEUR} dimensions)"
+    message += ", indexation automatique " + ("activée" if config.INDEXATION_AUTO else "désactivée")
+
+    return _construire_etat("Vecteurs (RAG)", True, message, consequence)
 
 
 def verifier_google() -> dict:
@@ -55,5 +71,21 @@ def verifier_google() -> dict:
     return _construire_etat("Recherche web", fonctionne, message, "Pas de recherche web : seules les données locales sont utilisées.")
 
 
-def diagnostiquer_services() -> list[dict]:
-    return [verifier_postgresql(), verifier_langchain(), verifier_ollama(), verifier_google()]
+def diagnostiquer_services(appel_reel_ia: bool = False) -> list[dict]:
+    return [verifier_postgresql(), verifier_agent_ia(appel_reel_ia), verifier_vecteurs(), verifier_google()]
+
+
+def etat_public_des_services() -> list[dict]:
+    """Pour la route publique /sante : seulement le nom du service et ok, mis en cache (aucun appel par visite)."""
+    global _cache_sante
+
+    with _verrou_sante:
+        if _cache_sante and time.monotonic() - _cache_sante[0] < DUREE_CACHE_SANTE_EN_SECONDES:
+            return _cache_sante[1]
+
+    etats = [{"service": etat["service"], "ok": etat["ok"]} for etat in diagnostiquer_services(appel_reel_ia=False)]
+
+    with _verrou_sante:
+        _cache_sante = (time.monotonic(), etats)
+
+    return etats

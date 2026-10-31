@@ -27,19 +27,20 @@ def supprimer_les_vieux_resultats(jours: int = 7):
 
 
 def afficher_diagnostic():
-    for etat in diagnostic.diagnostiquer_services():
+    for etat in diagnostic.diagnostiquer_services(appel_reel_ia=True):
         print(f"  {'OK' if etat['ok'] else '!!'}  {etat['service']:15s} {etat['message']}")
 
         if not etat["ok"]:
             print(f"      -> {etat['consequence_si_absent']}")
 
-    print(f"\nSite de démonstration : http://localhost:{config.PORT_API}\n")
+    print(f"\nAPI : http://{config.HOTE_API}:{config.PORT_API}\n")
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
-    logging.getLogger("httpx").setLevel(logging.WARNING)   # sinon la clé Google apparaît dans les journaux
+    for bibliotheque in ("httpx", "httpcore", "google_genai", "groq", "openai", "ddgs", "primp"):
+        logging.getLogger(bibliotheque).setLevel(logging.WARNING)   # sinon une clé peut apparaître dans les journaux
     preparer_les_dossiers()
     supprimer_les_vieux_resultats()
     afficher_diagnostic()
-    uvicorn.run(api.app, host="127.0.0.1", port=config.PORT_API)
+    uvicorn.run(api.app, host=config.HOTE_API, port=config.PORT_API)

@@ -72,11 +72,13 @@ def convertir_fragment_en_lieu(fragment: FragmentConnaissance, pertinence: float
 
 
 def chercher_connaissances(requete: RequeteAnalysee, avertissements: list[str]) -> list[Lieu]:
-    try:
-        vecteur_requete = list(modele_ia.calculer_vecteur_de_la_requete(requete.texte_original))
-    except (httpx.HTTPError, ValueError) as erreur:
-        avertissements.append(f"Vecteur de la requête indisponible, recherche par mots-clés seulement : {erreur}")
-        vecteur_requete = None
+    vecteur_requete = None
+
+    if modele_ia.vecteurs_actifs():
+        try:
+            vecteur_requete = list(modele_ia.calculer_vecteur_de_la_requete(requete.texte_original))
+        except (httpx.HTTPError, ValueError) as erreur:
+            avertissements.append(f"Vecteur de la requête indisponible, recherche par mots-clés seulement : {erreur}")
 
     try:
         fragments = base_donnees.chercher_fragments(vecteur_requete, requete.mots_cles_avec_synonymes,
@@ -229,7 +231,7 @@ def memoriser_lieux_google(lieux: list[Lieu], mots_cles: list[str], avertissemen
     noms_fichiers = [connaissances_json.enregistrer_lieu_dans_json(lieu, mots_cles)
                      for lieu in lieux if lieu.origine == "google"]
 
-    if not noms_fichiers:
+    if not noms_fichiers or not config.INDEXATION_AUTO:
         return
 
     try:

@@ -45,16 +45,22 @@ export default function SiteHeader({ variant, page }: { variant: SiteHeaderVaria
 
   useEffect(() => {
     let mounted = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (mounted) setAuthed(Boolean(data.session));
-    });
+    // Revérifiée aussi à chaque changement de page : l'icône ne dépend pas d'un seul événement de connexion
+    function verifierLaSession() {
+      supabase.auth.getSession().then(({ data }) => {
+        if (mounted) setAuthed(Boolean(data.session));
+      });
+    }
+    verifierLaSession();
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setAuthed(Boolean(session));
       if (!session) setAccountOpen(false);
     });
+    window.addEventListener("hashchange", verifierLaSession);
     return () => {
       mounted = false;
       listener.subscription.unsubscribe();
+      window.removeEventListener("hashchange", verifierLaSession);
     };
   }, []);
 

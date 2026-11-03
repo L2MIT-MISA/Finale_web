@@ -782,6 +782,12 @@
   text-align: center;
 }
 
+.auth-connecte p {
+  margin: 0;
+  color: #1f2937;
+  font-size: 15px;
+}
+
 .auth-connecte-actions {
   display: flex;
   flex-direction: column;

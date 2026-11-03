@@ -175,6 +175,48 @@ export async function getCurrentUserProfile() {
 // DÉCONNEXION
 // ================================
 
-export async function signOut() {
-  return await supabase.auth.signOut();
+const DELAI_DECONNEXION_MS = 5000;
+
+// Clés de session de Supabase dans le navigateur : « sb-<projet>-auth-token » et ses annexes (code-verifier…)
+function effacerLaSessionLocale() {
+  const prefixe = `sb-${new URL(import.meta.env.VITE_SUPABASE_URL).hostname.split(".")[0]}-auth-token`;
+
+  try {
+    Object.keys(localStorage)
+      .filter((cle) => cle.startsWith(prefixe))
+      .forEach((cle) => localStorage.removeItem(cle));
+  } catch {
+    /* stockage indisponible */
+  }
+}
+
+/**
+ * Déconnecte CET appareil. Supabase prévient d'abord son serveur ; si le réseau échoue ou tarde (plus de 5 s),
+ * la bibliothèque garde la session. On l'efface alors nous-mêmes et on recharge la page : la déconnexion
+ * réussit toujours pour l'utilisateur.
+ */
+export async function signOut(): Promise<{ error: null }> {
+  let cause = "délai dépassé";
+
+  try {
+    const resultat = await Promise.race([
+      supabase.auth.signOut({ scope: "local" }),
+      new Promise<null>((resoudre) => setTimeout(() => resoudre(null), DELAI_DECONNEXION_MS)),
+    ]);
+
+    if (resultat && !resultat.error) {
+      return { error: null };
+    }
+
+    cause = resultat?.error?.message ?? cause;
+  } catch (erreur) {
+    cause = erreur instanceof Error ? erreur.message : String(erreur);
+  }
+
+  console.warn(`[Connexion] Le serveur n'a pas confirmé la déconnexion (${cause}) : session effacée sur cet appareil.`);
+  effacerLaSessionLocale();
+  window.location.hash = "#pages/Home";
+  window.location.reload();
+
+  return { error: null };
 }

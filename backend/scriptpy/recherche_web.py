@@ -251,15 +251,30 @@ def chercher_resultats_web(question: str, nombre: int, delai: float) -> list[dic
               for nom in config.ORDRE_FOURNISSEURS_RECHERCHE if nom in FOURNISSEURS}
     en_attente = set(futurs.values())
 
-    # On s'arrête dès que les moteurs déjà terminés donnent assez de résultats pertinents (mesuré : Tavily 3 à 9 s,
-    # DuckDuckGo jusqu'à 18 s) : un moteur lent ne retarde plus la réponse.
+    # On s'arrête dès que les moteurs PRIORITAIRES ont répondu et suffisent (mesuré : Tavily 3 à 9 s, Wikipédia 1 s,
+    # DuckDuckGo jusqu'à 18 s) : un moteur lent et secondaire ne retarde plus la réponse, et un moteur rapide mais
+    # secondaire (Wikipédia) ne coupe plus le meilleur (Tavily, avec ses images).
     while en_attente and time.monotonic() < fin:
         _, en_attente = wait(en_attente, timeout=fin - time.monotonic(), return_when=FIRST_COMPLETED)
 
-        if len(_fusionner_resultats(question, nombre, futurs, en_attente, journaliser=False)) >= min(3, nombre):
+        if _les_prioritaires_suffisent(question, nombre, futurs, en_attente):
             break
 
     return _fusionner_resultats(question, nombre, futurs, en_attente, journaliser=True)
+
+
+def _les_prioritaires_suffisent(question: str, nombre: int, futurs: dict, en_attente: set) -> bool:
+    """Vrai si, en suivant l'ordre de priorité, on atteint trois résultats pertinents sans croiser de moteur en attente."""
+    for rang, futur in enumerate(futurs.values()):
+        if futur in en_attente:
+            return False
+
+        prefixe = dict(list(futurs.items())[:rang + 1])
+
+        if len(_fusionner_resultats(question, nombre, prefixe, set(), journaliser=False)) >= min(3, nombre):
+            return True
+
+    return False
 
 
 def _fusionner_resultats(question: str, nombre: int, futurs: dict, en_attente: set, journaliser: bool) -> list[dict]:

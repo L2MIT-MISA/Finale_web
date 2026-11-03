@@ -423,6 +423,18 @@ class TestAgentAvecOutils(BaseFournisseurs):
         self.assertLess(time.monotonic() - debut, 1.5)                  # n'attend pas les 5 s du moteur lent
         self.assertEqual(len(resultats), 3)
 
+    def test_un_moteur_secondaire_rapide_ne_coupe_pas_le_prioritaire(self):
+        prioritaire = [{"title": f"Photosynthèse {i}", "snippet": "", "link": f"https://tavily.exemple/{i}", "images": ["https://i/1.jpg"]} for i in range(3)]
+        secondaire = [{"title": f"Photosynthèse wiki {i}", "snippet": "", "link": f"https://wiki.exemple/{i}"} for i in range(3)]
+        fournisseurs = {"tavily": lambda q, n: time.sleep(0.6) or prioritaire, "wikipedia": lambda q, n: secondaire}
+
+        with mock.patch.dict(recherche_web.FOURNISSEURS, fournisseurs, clear=True), \
+                mock.patch.object(config, "ORDRE_FOURNISSEURS_RECHERCHE", ["tavily", "wikipedia"]):
+            resultats = CHERCHER_RESULTATS_WEB("la photosynthèse", 6, 5)
+
+        self.assertEqual(resultats[0]["fournisseur"], "tavily")
+        self.assertEqual(resultats[0]["images"], ["https://i/1.jpg"])
+
     def test_adresses_privees_refusees(self):
         for url in ("http://127.0.0.1/", "http://localhost:8000/", "http://10.0.0.5/", "file:///etc/passwd"):
             self.assertFalse(recherche_web.adresse_publique(url), url)
@@ -507,6 +519,30 @@ class TestQuestionDeConnaissance(BaseFournisseurs):
             self.assertEqual(len(recherche_images.images_pour_une_reponse("Marc Ravalomanana", [], delai=3)), 1)
 
         web.assert_called_once()
+
+    def test_images_tavily_pour_un_concept_mais_pas_pour_une_fonction(self):
+        config.IMAGES_ACTIVES = True
+        resultats = [{"url": "https://exemple.org/a", "images": ["https://img.exemple.org/photo.jpg"]}]
+
+        with mock.patch.object(recherche_images, "_images_des_pages_wikipedia", return_value=[]), \
+                mock.patch.object(recherche_images, "_images_du_web", return_value=[]):
+            self.assertEqual(len(recherche_images.images_pour_une_reponse("la photosynthèse", resultats, delai=3)), 1)
+            self.assertEqual(recherche_images.images_pour_une_reponse("le président actuel de Madagascar", resultats, delai=3), [])
+
+    def test_photos_tavily_d_un_lieu_par_l_adresse_jamais_par_la_description(self):
+        config.CLE_API_TAVILY = "tvly-test"
+        reponse = SimpleNamespace(status_code=200, json=lambda: {"images": [
+            {"url": "https://www.madacamp.com/images/Hotel_Isoraka_002.jpg", "description": "Hôtel Isoraka"},
+            {"url": "https://upload.wikimedia.org/Reconstructed_Rova.jpg", "description": "The Hôtel Isoraka in Antananarivo"},
+            "https://media-cdn.tripadvisor.com/media/photo-s/hotel-la-villette.jpg"]})
+
+        try:
+            with mock.patch.object(recherche_images.httpx, "post", return_value=reponse):
+                images = recherche_images._images_tavily_lieu({"nom": "Hôtel Isoraka", "district": "Antananarivo"}, 3)
+        finally:
+            config.CLE_API_TAVILY = ""
+
+        self.assertEqual([image["url"] for image in images], ["https://www.madacamp.com/images/Hotel_Isoraka_002.jpg"])
 
     def test_la_premiere_page_est_lue_et_la_date_du_jour_donnee(self):
         reponse = agent_ia.ReponseAgent("Michaël Randrianirina, depuis le 14 octobre 2025 [1].", "gemini", "gemini-3.6-flash", 900, [])

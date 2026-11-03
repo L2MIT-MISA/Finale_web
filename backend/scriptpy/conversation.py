@@ -628,7 +628,7 @@ def _recuperer_les_images(futur, meta: dict) -> list[dict]:
         return []
 
     try:
-        images = futur.result(timeout=2)
+        images = futur.result(timeout=4)
     except Exception:  # noqa: BLE001 - délai dépassé ou source en panne : la réponse part sans photo
         return []
 

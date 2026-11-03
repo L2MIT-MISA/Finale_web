@@ -293,6 +293,8 @@ def _images_google_places(lieu: dict, delai: float) -> list[dict]:
 
 
 # --- Photos d'une réponse générale (« Connais-tu… ? »), comme une recherche Google ------------------------------------
+MOTS_DE_FONCTION = {"PRESIDENT", "PRESIDENTE", "MINISTRE", "MAIRE", "GOUVERNEUR", "DIRECTEUR", "DIRECTRICE", "CHEF",
+                    "DIRIGEANT", "SENATEUR", "DEPUTE", "ROI", "REINE", "PAPE", "PDG", "ACTUEL", "ACTUELLE"}
 MOTIF_PAGE_WIKIPEDIA = re.compile(r"^https://([a-z]{2,3})\.wikipedia\.org/wiki/([^#?]+)")
 
 
@@ -367,19 +369,51 @@ def images_pour_une_reponse(requete: str, resultats: list[dict], nombre: int = 4
 
     fin = time.monotonic() + (config.IMAGES_DELAI_TOTAL_EN_SECONDES if delai is None else delai)
     noms_propres = [mot for mot in re.findall(r"\b[A-ZÀ-Ý][\w'-]{2,}", requete) if normaliser_nom(mot) != "MADAGASCAR"]
-    # Images fournies par l'API de recherche (Tavily) : seulement pour un nom propre, comme la recherche d'images
+    # Une fonction sans nom propre (« le président actuel ») : une image du web pourrait montrer la mauvaise personne.
+    # Pour un concept, un animal ou un lieu (« photosynthèse », « lémurien »), ce risque n'existe pas.
+    images_du_web_permises = bool(noms_propres) or not (set(normaliser_nom(requete).split()) & MOTS_DE_FONCTION)
     images_de_la_recherche = [{"url": url, "legende": "Image trouvée sur le web (Tavily)", "page": None}
                               for resultat in resultats for url in map(url_image_valide, resultat.get("images") or []) if url]
-    images = (images_de_la_recherche if noms_propres else []) + _images_des_pages_wikipedia(requete, resultats, min(config.IMAGES_DELAI_REQUETE_EN_SECONDES, max(0.5, fin - time.monotonic())))
+    images = (images_de_la_recherche if images_du_web_permises else []) + _images_des_pages_wikipedia(requete, resultats, min(config.IMAGES_DELAI_REQUETE_EN_SECONDES, max(0.5, fin - time.monotonic())))
     reste = fin - time.monotonic()
 
     # Recherche d'images sur le web seulement pour un nom propre (« Marc Ravalomanana ») : pour une question descriptive
     # (« le président actuel »), un mot comme « actuel » suffirait à retenir la photo d'une autre personne.
-    if noms_propres and len(images) < nombre and reste > 1:
+    # La recherche d'images (DuckDuckGo) est lente : seulement s'il manque vraiment des photos, et bornée à 3 s
+    if images_du_web_permises and len(images) < 2 and reste > 1:
         urls = {image["url"] for image in images}
-        images += [image for image in _images_du_web(requete, nombre - len(images), reste) if image["url"] not in urls]
+        images += [image for image in _images_du_web(requete, nombre - len(images), min(3.0, reste)) if image["url"] not in urls]
 
     return images[:nombre]
+
+
+def _images_tavily_lieu(lieu: dict, delai: float) -> list[dict]:
+    """Photos d'un établissement par Tavily. Seules les images dont l'adresse contient le nom de l'établissement sont
+    gardées : les descriptions fournies par Tavily sont générées et peu fiables (mesuré le 03/11/2026 : une photo du
+    Rova décrite comme « Restaurant Kanana »)."""
+    nom = lieu.get("nom") or ""
+
+    if not config.CLE_API_TAVILY or not mots_distinctifs(nom):
+        return []
+
+    try:
+        reponse = httpx.post("https://api.tavily.com/search", timeout=delai,
+                             headers={"Authorization": f"Bearer {config.CLE_API_TAVILY}"},
+                             json={"query": f"{nom} {lieu.get('district') or lieu.get('region') or ''} Madagascar".strip(),
+                                   "search_depth": "basic", "max_results": 3, "include_images": True})
+        images = reponse.json().get("images") or [] if reponse.status_code == 200 else []
+    except (httpx.HTTPError, ValueError):
+        return []
+
+    retenues = []
+
+    for image in images:
+        url = url_image_valide(image if isinstance(image, str) else (image or {}).get("url"))
+
+        if url and texte_correspond_au_nom(nom, url.replace("_", " ").replace("-", " ")):
+            retenues.append({"url": url, "legende": f"Photo : {urlparse(url).hostname or 'web'}"})
+
+    return retenues
 
 
 # --- Orchestration --------------------------------------------------------------------------------------------------
@@ -387,7 +421,8 @@ def _cle(lieu: dict) -> str:
     return f"{normaliser_nom(lieu.get('nom'))}|{normaliser_nom(lieu.get('district') or lieu.get('adresse') or lieu.get('region'))}"
 
 
-def _chercher_pour_un_lieu(lieu: dict, fin: float | None = None, google_autorise: bool = False) -> list[dict]:
+def _chercher_pour_un_lieu(lieu: dict, fin: float | None = None, google_autorise: bool = False,
+                           tavily_autorise: bool = False) -> list[dict]:
     """Images trouvées pour un lieu, dans l'ordre de confiance, jusqu'à IMAGES_PAR_LIEU et avant l'instant `fin`."""
     nom = lieu.get("nom") or ""
     localite = lieu.get("district") or lieu.get("region") or ""
@@ -403,6 +438,9 @@ def _chercher_pour_un_lieu(lieu: dict, fin: float | None = None, google_autorise
     if _est_un_etablissement(lieu):
         if google_autorise:
             sources.append(lambda delai: _images_google_places(lieu, delai))
+
+        if tavily_autorise:
+            sources.append(lambda delai: _images_tavily_lieu(lieu, delai))
 
         sources += [lambda delai: _images_mapillary(lieu, delai), lambda delai: _images_commons(lieu, delai),
                     lambda delai: unique(_image_depuis_une_recherche(nom, localite), "Image trouvée sur le web"),
@@ -462,6 +500,7 @@ def enrichir_avec_images(lieux: list[dict], nombre_max: int | None = None, delai
     delai_max = config.IMAGES_DELAI_TOTAL_EN_SECONDES if delai_max is None else delai_max
     fin = time.monotonic() + max(0.5, delai_max - 0.3)
     google_restants = config.IMAGES_GOOGLE_PLACES_PAR_RECHERCHE if config.IMAGES_GOOGLE_PLACES_CLE else 0
+    tavily_restants = config.IMAGES_TAVILY_LIEUX if config.CLE_API_TAVILY else 0
     a_traiter = []
 
     for lieu in lieux[:nombre_max]:
@@ -475,11 +514,14 @@ def enrichir_avec_images(lieux: list[dict], nombre_max: int | None = None, delai
         else:
             google_autorise = google_restants > 0 and _est_un_etablissement(lieu)
             google_restants -= 1 if google_autorise else 0
-            a_traiter.append((lieu, google_autorise))
+            tavily_autorise = tavily_restants > 0 and _est_un_etablissement(lieu)
+            tavily_restants -= 1 if tavily_autorise else 0
+            a_traiter.append((lieu, google_autorise, tavily_autorise))
 
     if a_traiter:
         executeur = ThreadPoolExecutor(max_workers=min(6, len(a_traiter)))
-        futurs = {executeur.submit(_chercher_pour_un_lieu, lieu, fin, google_autorise): lieu for lieu, google_autorise in a_traiter}
+        futurs = {executeur.submit(_chercher_pour_un_lieu, lieu, fin, google_autorise, tavily_autorise): lieu
+                  for lieu, google_autorise, tavily_autorise in a_traiter}
         termines, _ = wait(futurs, timeout=delai_max)
         executeur.shutdown(wait=False, cancel_futures=True)       # une source trop lente ne bloque jamais la réponse
 

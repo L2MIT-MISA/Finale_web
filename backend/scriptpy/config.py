@@ -201,6 +201,8 @@ IMAGES_DELAI_TOTAL_EN_SECONDES = float(os.getenv("IMAGES_DELAI_TOTAL", "5"))
 IMAGES_DUREE_CACHE_EN_SECONDES = 86400
 IMAGES_DELAI_REQUETE_EN_SECONDES = 4
 IMAGES_PAR_LIEU = int(os.getenv("IMAGES_PAR_LIEU", "4"))
+# Photos d'établissements par Tavily : une recherche (un crédit) pour chacun des premiers lieux sans photo
+IMAGES_TAVILY_LIEUX = int(os.getenv("IMAGES_TAVILY_LIEUX", "3"))
 IMAGES_COMMONS = os.getenv("IMAGES_COMMONS", "on").lower() != "off"      # Wikimedia Commons autour des coordonnées
 IMAGES_MAPILLARY_JETON = os.getenv("MAPILLARY_JETON", "")                # vues de rue, jeton gratuit (facultatif)
 # Google Places Photos (facultatif, compte de facturation requis) : jamais mis en cache (conditions de Google)

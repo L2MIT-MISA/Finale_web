@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { LANGS } from "../../i18n/index";
 import { useLang } from "../../i18n/LanguageContext";
 import { memoriserLaPageActuelle, signOut } from "../../services/auth";
+import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../../services/supabase";
 import "./SiteHeader.css";
 
@@ -37,6 +38,7 @@ export default function SiteHeader({ variant, page }: { variant: SiteHeaderVaria
   const { lang, setLang, t } = useLang();
   const [langOpen, setLangOpen] = useState(false);
   const [authed, setAuthed] = useState(false);
+  const [photo, setPhoto] = useState<string | null>(null);
   const [accountOpen, setAccountOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -46,14 +48,21 @@ export default function SiteHeader({ variant, page }: { variant: SiteHeaderVaria
   useEffect(() => {
     let mounted = true;
     // Revérifiée aussi à chaque changement de page : l'icône ne dépend pas d'un seul événement de connexion
+    function appliquer(session: Session | null) {
+      const meta = session?.user.user_metadata ?? {};
+      setAuthed(Boolean(session));
+      // Photo du compte Google (picture / avatar_url) ou Facebook : http(s) uniquement
+      const url = meta.avatar_url ?? meta.picture;
+      setPhoto(typeof url === "string" && /^https:\/\//i.test(url) ? url : null);
+    }
     function verifierLaSession() {
       supabase.auth.getSession().then(({ data }) => {
-        if (mounted) setAuthed(Boolean(data.session));
+        if (mounted) appliquer(data.session);
       });
     }
     verifierLaSession();
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setAuthed(Boolean(session));
+      appliquer(session);
       if (!session) setAccountOpen(false);
     });
     window.addEventListener("hashchange", verifierLaSession);
@@ -227,10 +236,15 @@ export default function SiteHeader({ variant, page }: { variant: SiteHeaderVaria
                 aria-label={t.nav.account}
                 onClick={() => setAccountOpen((open) => !open)}
               >
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <circle cx="12" cy="8" r="3.5" />
-                  <path d="M5.5 20c.5-4 2.7-6 6.5-6s6 2 6.5 6" />
-                </svg>
+                {photo ? (
+                  // no-referrer : les photos Google (lh3.googleusercontent.com) refusent parfois l'affichage sinon
+                  <img className="site-header__avatar-photo" src={photo} alt="" referrerPolicy="no-referrer" onError={() => setPhoto(null)} />
+                ) : (
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="8" r="3.5" />
+                    <path d="M5.5 20c.5-4 2.7-6 6.5-6s6 2 6.5 6" />
+                  </svg>
+                )}
               </button>
               {accountOpen && (
                 <div className="site-header__menu site-header__menu--right" role="menu">

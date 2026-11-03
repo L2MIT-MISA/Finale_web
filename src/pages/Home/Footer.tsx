@@ -1,4 +1,5 @@
 import { useLang } from "../../i18n/LanguageContext";
+import { memoriserLaPageActuelle } from "../../services/auth";
 
 function go(hash: string) {
   window.location.hash = hash;
@@ -32,8 +33,11 @@ export default function Footer() {
           <button type="button" onClick={() => go("#pages/About")}>
             {f.about}
           </button>
-          <button type="button" onClick={() => go("#pages/Auth")}>
+          <button type="button" onClick={() => { memoriserLaPageActuelle(); go("#pages/Auth"); }}>
             {f.connect}
+          </button>
+          <button type="button" onClick={() => go("#pages/Confidentialite")}>
+            {f.privacy}
           </button>
         </nav>
       </div>

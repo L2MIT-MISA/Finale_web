@@ -740,3 +740,51 @@
     transition: none;
   }
 }
+
+
+/* =====================================================
+   POLITIQUE DE CONFIDENTIALITÉ ET SESSION
+===================================================== */
+
+.auth-consentement {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: left;
+  cursor: pointer;
+}
+
+.auth-consentement input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  cursor: pointer;
+}
+
+.auth-consentement a {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.sso-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.auth-connecte {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: center;
+}
+
+.auth-connecte-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+

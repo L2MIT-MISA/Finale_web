@@ -629,6 +629,20 @@ class TestSanteEtLimites(BaseFournisseurs):
         self.assertEqual(codes, [200, 200, 429])
 
 
+class TestConservation(Base):
+    def test_les_resultats_de_plus_de_7_jours_sont_supprimes(self):
+        import resultat_json
+
+        ancien, recent = self.dossier / "ancien.json", self.dossier / "recent.json"
+        ancien.write_text("{}"), recent.write_text("{}")
+        huit_jours = time.time() - 8 * 86400
+        os.utime(ancien, (huit_jours, huit_jours))
+
+        self.assertEqual(resultat_json.supprimer_les_resultats_anciens(), 1)
+        self.assertFalse(ancien.exists())
+        self.assertTrue(recent.exists())
+
+
 class TestVecteurs(BaseFournisseurs):
     def test_vecteurs_desactives_sans_erreur_ni_avertissement(self):
         config.VECTEURS_FOURNISSEUR = "off"

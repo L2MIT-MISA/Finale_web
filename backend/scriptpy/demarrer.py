@@ -1,11 +1,11 @@
 import logging
-import time
 
 import uvicorn
 
 import api
 import config
 import diagnostic
+import resultat_json
 
 
 def preparer_les_dossiers():
@@ -14,16 +14,9 @@ def preparer_les_dossiers():
         dossier.mkdir(parents=True, exist_ok=True)
 
 
-def supprimer_les_vieux_resultats(jours: int = 7):
-    """Les fichiers donnees/resultats/ sont temporaires (relus pendant quelques secondes par le site) : on évite qu'ils s'accumulent."""
-    limite = time.time() - jours * 86400
-
-    for fichier in config.DOSSIER_RESULTATS.glob("*.json"):
-        try:
-            if fichier.stat().st_mtime < limite:
-                fichier.unlink()
-        except OSError:
-            pass
+def supprimer_les_vieux_resultats():
+    """Les fichiers donnees/resultats/ sont temporaires : le nettoyage continue ensuite toutes les heures (api.py)."""
+    resultat_json.supprimer_les_resultats_anciens()
 
 
 def afficher_diagnostic():

@@ -123,6 +123,25 @@ def assembler_urgence(*, identifiant: str, date_creation: str, texte_requete: st
         avertissements=avertissements, erreur=None)
 
 
+DUREE_CONSERVATION_RESULTATS_EN_JOURS = 7          # annoncée dans la politique de confidentialité du site
+
+
+def supprimer_les_resultats_anciens(jours: int = DUREE_CONSERVATION_RESULTATS_EN_JOURS) -> int:
+    """Les résultats (qui contiennent le message de l'utilisateur) ne sont gardés que quelques jours."""
+    limite = time.time() - jours * 86400
+    supprimes = 0
+
+    for fichier in config.DOSSIER_RESULTATS.glob("*.json"):
+        try:
+            if fichier.stat().st_mtime < limite:
+                fichier.unlink()
+                supprimes += 1
+        except OSError:
+            pass
+
+    return supprimes
+
+
 def chemin_du_resultat(identifiant: str):
     return config.DOSSIER_RESULTATS / f"{identifiant}.json"
 

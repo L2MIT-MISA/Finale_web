@@ -80,6 +80,7 @@ export interface Dict {
     download: string;
     about: string;
     connect: string;
+    privacy: string;
     secondaryNav: string;
     note: string;
   };

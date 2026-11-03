@@ -25,10 +25,18 @@ def indexer_si_demande(evenement_arret):
         indexation.reindexer_regulierement(evenement_arret)
 
 
+def supprimer_les_resultats_regulierement(evenement_arret):
+    # Durée annoncée dans la politique de confidentialité : vraie même si le serveur tourne des semaines sans redémarrer
+    while not evenement_arret.is_set():
+        resultat_json.supprimer_les_resultats_anciens()
+        evenement_arret.wait(3600)
+
+
 @asynccontextmanager
 async def cycle_de_vie(application):
     evenement_arret = threading.Event()
     threading.Thread(target=indexer_si_demande, args=(evenement_arret,), daemon=True).start()
+    threading.Thread(target=supprimer_les_resultats_regulierement, args=(evenement_arret,), daemon=True).start()
     yield
     evenement_arret.set()
 

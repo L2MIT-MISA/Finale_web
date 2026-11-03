@@ -1,0 +1,56 @@
+.conf-page {
+  display: flex;
+  justify-content: center;
+  padding: 32px 16px 64px;
+  background: #f7f8fb;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.conf-article {
+  width: 100%;
+  max-width: 760px;
+  padding: 32px clamp(18px, 4vw, 40px);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  color: #1f2937;
+  line-height: 1.6;
+  font-size: 15px;
+  text-align: left;
+}
+
+.conf-article h1,
+.conf-article h2 {
+  color: #111827;
+  text-align: left;
+}
+
+.conf-article h1 {
+  margin: 0 0 4px;
+  font-size: 28px;
+}
+
+.conf-article h2 {
+  margin: 28px 0 8px;
+  font-size: 18px;
+}
+
+.conf-article ul {
+  padding-left: 20px;
+}
+
+.conf-article a {
+  color: #1d4ed8;
+}
+
+.conf-date {
+  margin: 0 0 20px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.conf-retour {
+  margin-top: 32px;
+  font-size: 14px;
+}

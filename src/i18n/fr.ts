@@ -101,6 +101,7 @@ export const fr: Dict = {
     download: "Télécharger",
     about: "À propos",
     connect: "Se connecter",
+    privacy: "Confidentialité",
     secondaryNav: "Navigation secondaire",
     note: "Connectéo — la carte de Madagascar, même hors connexion.",
   },

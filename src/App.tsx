@@ -5,6 +5,8 @@ import SearchPage from "./pages/Search/SearchPage";
 import DownloadPage from "./pages/Download/DownloadPage";
 import About from "./pages/About/About";
 import Auth from "./pages/Auth/Auth";
+import Confidentialite from "./pages/Confidentialite/Confidentialite";
+import { suivreLeRetourDeConnexion } from "./services/auth";
 
 function getCurrentPage() {
   return window.location.hash.replace("#", "") || "pages/Home";
@@ -20,6 +22,9 @@ function App() {
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
+
+  // Retour de Google ou Facebook : erreur affichée sur la page de connexion, ou retour à la page d'origine
+  useEffect(() => suivreLeRetourDeConnexion(), []);
 
   function renderPage() {
     switch (page) {
@@ -39,6 +44,9 @@ function App() {
         return <SearchPage />;
       case "pages/Auth":
         return <Auth />;
+      case "confidentialite":
+      case "pages/Confidentialite":
+        return <Confidentialite />;
       case "about":
       case "pages/About":
         return <About />;

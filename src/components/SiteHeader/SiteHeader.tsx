@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { LANGS } from "../../i18n/index";
 import { useLang } from "../../i18n/LanguageContext";
-import { signOut } from "../../services/auth";
+import { memoriserLaPageActuelle, signOut } from "../../services/auth";
 import { supabase } from "../../services/supabase";
 import "./SiteHeader.css";
 
@@ -110,6 +110,7 @@ export default function SiteHeader({ variant, page }: { variant: SiteHeaderVaria
 
   function goAuth() {
     setMobileOpen(false);
+    memoriserLaPageActuelle();
     window.location.hash = "#pages/Auth";
   }
 

@@ -105,6 +105,7 @@ export const en: PartialDict = {
     download: "Download",
     about: "About",
     connect: "Sign in",
+    privacy: "Privacy",
     secondaryNav: "Secondary navigation",
     note: "Connectéo — the map of Madagascar, even offline.",
   },

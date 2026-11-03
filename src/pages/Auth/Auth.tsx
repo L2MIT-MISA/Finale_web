@@ -1,8 +1,13 @@
 import { useState, useEffect } from "react";
 import {
   signInWithGoogle,
-  signInWithFacebook
+  signInWithFacebook,
+  signOut,
+  confidentialiteAcceptee,
+  enregistrerAccordConfidentialite,
+  lireErreurDeConnexion
 } from "../../services/auth";
+import { supabase } from "../../services/supabase";
 
 import "./Auth.css";
 
@@ -14,6 +19,51 @@ function Auth() {
   const [loading, setLoading] = useState(false);
 
   const [imageIndex, setImageIndex] = useState(0);
+
+  const [accepte, setAccepte] = useState(confidentialiteAcceptee);
+
+  const [connecte, setConnecte] = useState<string | null>(null);
+
+
+  /* =====================================================
+     ÉTAT DE LA SESSION ET ERREUR DE RETOUR
+  ===================================================== */
+
+  useEffect(() => {
+    const erreur = lireErreurDeConnexion();
+
+    if (erreur) {
+      setMessage(erreur);
+    }
+
+    supabase.auth.getSession().then(({ data }) => {
+      const utilisateur = data.session?.user;
+      setConnecte(utilisateur ? utilisateur.email ?? utilisateur.user_metadata?.full_name ?? "votre compte" : null);
+    });
+
+    const { data: ecoute } = supabase.auth.onAuthStateChange((_evenement, session) => {
+      setConnecte(session?.user ? session.user.email ?? "votre compte" : null);
+    });
+
+    return () => ecoute.subscription.unsubscribe();
+  }, []);
+
+
+  function changerAccord(valeur: boolean) {
+    setAccepte(valeur);
+    enregistrerAccordConfidentialite(valeur);
+
+    if (valeur) {
+      setMessage("");
+    }
+  }
+
+
+  async function handleSignOut() {
+    setLoading(true);
+    await signOut();
+    setLoading(false);
+  }
 
 
   /* =====================================================
@@ -53,6 +103,11 @@ function Auth() {
   ===================================================== */
 
   async function handleGoogleLogin() {
+    if (!accepte) {
+      setMessage("Veuillez d'abord accepter la politique de confidentialité.");
+      return;
+    }
+
     setMessage("");
 
     setLoading(true);
@@ -75,6 +130,11 @@ function Auth() {
      CONNEXION FACEBOOK
   ===================================================== */
   async function handleFacebookLogin() {
+    if (!accepte) {
+      setMessage("Veuillez d'abord accepter la politique de confidentialité.");
+      return;
+    }
+
     setMessage("");
     setLoading(true);
 
@@ -170,9 +230,47 @@ function Auth() {
             </div>
 
 
+            {/* DÉJÀ CONNECTÉ */}
+
+            {connecte && (
+              <div className="auth-connecte">
+                <p>
+                  Vous êtes connecté avec <strong>{connecte}</strong>.
+                </p>
+
+                <div className="auth-connecte-actions">
+                  <button type="button" className="sso-button" onClick={() => { window.location.hash = "#pages/Home"; }}>
+                    Retour à l'accueil
+                  </button>
+
+                  <button type="button" className="sso-button" onClick={handleSignOut} disabled={loading}>
+                    Se déconnecter
+                  </button>
+                </div>
+              </div>
+            )}
+
+
             {/* BOUTONS SSO */}
 
+            {!connecte && (
             <form className="auth-form">
+
+              {/* POLITIQUE DE CONFIDENTIALITÉ */}
+
+              <label className="auth-consentement">
+                <input
+                  type="checkbox"
+                  checked={accepte}
+                  onChange={(e) => changerAccord(e.target.checked)}
+                />
+
+                <span>
+                  J'ai lu et j'accepte la{" "}
+                  <a href="#pages/Confidentialite">politique de confidentialité</a>
+                  {" "}de Connectéo.
+                </span>
+              </label>
 
 
               {/* GOOGLE */}
@@ -181,7 +279,7 @@ function Auth() {
                 type="button"
                 className="sso-button"
                 onClick={handleGoogleLogin}
-                disabled={loading}
+                disabled={loading || !accepte}
               >
 
                 <img
@@ -202,7 +300,7 @@ function Auth() {
               <button
                 type="button"
                 className="sso-button"
-                disabled={loading}
+                disabled={loading || !accepte}
                 onClick={handleFacebookLogin}
               >
 
@@ -220,6 +318,7 @@ function Auth() {
 
 
             </form>
+            )}
 
 
             {/* MESSAGE */}

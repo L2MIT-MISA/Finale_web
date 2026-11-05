@@ -6,6 +6,8 @@ import DownloadPage from "./pages/Download/DownloadPage";
 import About from "./pages/About/About";
 import Auth from "./pages/Auth/Auth";
 import Confidentialite from "./pages/Confidentialite/Confidentialite";
+import ConditionsUtilisation from "./pages/ConditionsUtilisation/ConditionsUtilisation";
+import SuppressionDonnees from "./pages/SuppressionDonnees/SuppressionDonnees";
 import { suivreLeRetourDeConnexion } from "./services/auth";
 
 function getCurrentPage() {
@@ -47,6 +49,10 @@ function App() {
       case "confidentialite":
       case "pages/Confidentialite":
         return <Confidentialite />;
+      case "pages/ConditionsUtilisation":
+        return <ConditionsUtilisation/>
+      case "pages/SuppressionDonnees": 
+        return <SuppressionDonnees/>
       case "about":
       case "pages/About":
         return <About />;

@@ -94,7 +94,7 @@ export default function ConditionsUtilisation() {
           </p>
           <p>
             <strong>Adresse e-mail :</strong>
-            <a href="#">connecteo.contact@gmail.com</a>
+            <a href="mailto:connecteo.contact@gmail.com">connecteo.contact@gmail.com</a>
           </p>
         </section>
 

@@ -39,6 +39,12 @@ export default function Footer() {
           <button type="button" onClick={() => go("#pages/Confidentialite")}>
             {f.privacy}
           </button>
+          <button type="button" onClick={() => go("#pages/ConditionsUtilisation")}>
+            {f.terms}
+          </button>
+          <button type="button" onClick={() => go("#pages/SuppressionDonnees")}>
+            {f.deletion}
+          </button>
         </nav>
       </div>
       <p className="footer__note">{f.note}</p>

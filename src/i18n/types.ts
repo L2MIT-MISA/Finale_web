@@ -81,6 +81,8 @@ export interface Dict {
     about: string;
     connect: string;
     privacy: string;
+    terms: string;
+    deletion: string;
     secondaryNav: string;
     note: string;
   };

@@ -51,7 +51,7 @@ export default function SuppressionDonnees() {
           </p>
 
           <p className="suppression-email">
-            <a href="#">connecteo.contact@gmail.com</a>
+            <a href="mailto:connecteo.contact@gmail.com">connecteo.contact@gmail.com</a>
           </p>
 
           <p>

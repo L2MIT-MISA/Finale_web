@@ -4,8 +4,14 @@ import { useLang } from "../../i18n/LanguageContext";
 
 import {
     signInWithGoogle,
-    signInWithFacebook
+    signInWithFacebook,
+    signOut,
+    confidentialiteAcceptee,
+    enregistrerAccordConfidentialite,
+    lireErreurDeConnexion
 } from "../../services/auth";
+
+import { supabase } from "../../services/supabase";
 
 import "./Auth.css";
 
@@ -18,6 +24,10 @@ function Auth() {
     const [loading, setLoading] = useState(false);
 
     const [imageIndex, setImageIndex] = useState(0);
+
+    const [accepte, setAccepte] = useState(confidentialiteAcceptee);
+
+    const [connecte, setConnecte] = useState<string | null>(null);
 
 
     /* =====================================================
@@ -32,7 +42,17 @@ function Auth() {
             continueGoogle: "Continuer avec Google",
             continueFacebook: "Continuer avec Facebook",
             googleError: "Impossible de se connecter avec Google.",
-            facebookError: "Impossible de se connecter avec Facebook."
+            facebookError: "Impossible de se connecter avec Facebook.",
+            acceptPrefix: "J'ai lu et j'accepte la",
+            privacyLink: "politique de confidentialité",
+            acceptAnd: "et les",
+            termsLink: "conditions d'utilisation",
+            acceptSuffix: "de Connectéo.",
+            acceptRequired: "Veuillez d'abord accepter la politique de confidentialité.",
+            connectedAs: "Vous êtes connecté avec",
+            backHome: "Retour à l'accueil",
+            signOutLabel: "Se déconnecter",
+            fallbackAccount: "votre compte"
         },
 
         MG: {
@@ -42,7 +62,17 @@ function Auth() {
             continueGoogle: "Hanohy amin'ny Google",
             continueFacebook: "Hanohy amin'ny Facebook",
             googleError: "Tsy afaka miditra amin'ny alalan'ny Google.",
-            facebookError: "Tsy afaka miditra amin'ny alalan'ny Facebook."
+            facebookError: "Tsy afaka miditra amin'ny alalan'ny Facebook.",
+            acceptPrefix: "Namaky sy manaiky ny",
+            privacyLink: "politikan'ny fiainana manokana",
+            acceptAnd: "sy ny",
+            termsLink: "fepetra fampiasana",
+            acceptSuffix: "an'ny Connectéo aho.",
+            acceptRequired: "Mba ekeo aloha ny politikan'ny fiainana manokana.",
+            connectedAs: "Tafiditra amin'ny",
+            backHome: "Hiverina any amin'ny fandraisana",
+            signOutLabel: "Hiala",
+            fallbackAccount: "ny kaontinao"
         },
 
         EN: {
@@ -52,7 +82,17 @@ function Auth() {
             continueGoogle: "Continue with Google",
             continueFacebook: "Continue with Facebook",
             googleError: "Unable to sign in with Google.",
-            facebookError: "Unable to sign in with Facebook."
+            facebookError: "Unable to sign in with Facebook.",
+            acceptPrefix: "I have read and accept the",
+            privacyLink: "privacy policy",
+            acceptAnd: "and the",
+            termsLink: "terms of use",
+            acceptSuffix: "of Connectéo.",
+            acceptRequired: "Please accept the privacy policy first.",
+            connectedAs: "You are signed in as",
+            backHome: "Back to home",
+            signOutLabel: "Sign out",
+            fallbackAccount: "your account"
         }
     };
 
@@ -62,6 +102,52 @@ function Auth() {
     ===================================================== */
 
     const currentLang = translations[lang] || translations.FR;
+
+
+    /* =====================================================
+       SESSION, ERREUR DE RETOUR ET ACCORD
+    ===================================================== */
+
+    useEffect(() => {
+        const erreur = lireErreurDeConnexion();
+
+        if (erreur) {
+            setMessage(erreur);
+        }
+
+        supabase.auth.getSession().then(({ data }) => {
+            const utilisateur = data.session?.user;
+
+            setConnecte(utilisateur ? utilisateur.email ?? utilisateur.user_metadata?.full_name ?? "" : null);
+        });
+
+        const { data: ecoute } = supabase.auth.onAuthStateChange((_evenement, session) => {
+            setConnecte(session?.user ? session.user.email ?? "" : null);
+        });
+
+        return () => ecoute.subscription.unsubscribe();
+
+    }, []);
+
+
+    function changerAccord(valeur: boolean) {
+        setAccepte(valeur);
+
+        enregistrerAccordConfidentialite(valeur);
+
+        if (valeur) {
+            setMessage("");
+        }
+    }
+
+
+    async function handleSignOut() {
+        setLoading(true);
+
+        await signOut();
+
+        setLoading(false);
+    }
 
 
     /* =====================================================
@@ -101,6 +187,12 @@ function Auth() {
     ===================================================== */
 
     async function handleGoogleLogin() {
+        if (!accepte) {
+            setMessage(currentLang.acceptRequired);
+
+            return;
+        }
+
         setMessage("");
 
         setLoading(true);
@@ -128,6 +220,12 @@ function Auth() {
     ===================================================== */
 
     async function handleFacebookLogin() {
+        if (!accepte) {
+            setMessage(currentLang.acceptRequired);
+
+            return;
+        }
+
         setMessage("");
 
         setLoading(true);
@@ -225,9 +323,66 @@ function Auth() {
 
 
 
+                        {/* DÉJÀ CONNECTÉ */}
+
+                        {connecte !== null && (
+                            <div className="auth-connecte">
+
+                                <p>
+                                    {currentLang.connectedAs}{" "}
+                                    <strong>{connecte || currentLang.fallbackAccount}</strong>.
+                                </p>
+
+                                <div className="auth-connecte-actions">
+
+                                    <button
+                                        type="button"
+                                        className="sso-button"
+                                        onClick={() => { window.location.hash = "#pages/Home"; }}
+                                    >
+                                        {currentLang.backHome}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className="sso-button"
+                                        onClick={handleSignOut}
+                                        disabled={loading}
+                                    >
+                                        {currentLang.signOutLabel}
+                                    </button>
+
+                                </div>
+
+                            </div>
+                        )}
+
+
                         {/* BOUTONS DE CONNEXION */}
 
+                        {connecte === null && (
                         <form className="auth-form">
+
+
+                            {/* ACCORD CONFIDENTIALITÉ ET CONDITIONS */}
+
+                            <label className="auth-consentement">
+
+                                <input
+                                    type="checkbox"
+                                    checked={accepte}
+                                    onChange={(e) => changerAccord(e.target.checked)}
+                                />
+
+                                <span>
+                                    {currentLang.acceptPrefix}{" "}
+                                    <a href="#pages/Confidentialite">{currentLang.privacyLink}</a>
+                                    {" "}{currentLang.acceptAnd}{" "}
+                                    <a href="#pages/ConditionsUtilisation">{currentLang.termsLink}</a>
+                                    {" "}{currentLang.acceptSuffix}
+                                </span>
+
+                            </label>
 
 
                             {/* GOOGLE */}
@@ -236,7 +391,7 @@ function Auth() {
                                 type="button"
                                 className="sso-button"
                                 onClick={handleGoogleLogin}
-                                disabled={loading}
+                                disabled={loading || !accepte}
                             >
 
                                 <img
@@ -258,7 +413,7 @@ function Auth() {
                             <button
                                 type="button"
                                 className="sso-button"
-                                disabled={loading}
+                                disabled={loading || !accepte}
                                 onClick={handleFacebookLogin}
                             >
 
@@ -276,6 +431,7 @@ function Auth() {
 
 
                         </form>
+                        )}
 
 
 
